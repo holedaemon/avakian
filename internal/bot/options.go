@@ -32,3 +32,9 @@ func WithClient(c *harmony.Client) Option {
 		b.Client = c
 	}
 }
+
+func WithDebug(d bool) Option {
+	return func(b *Bot) {
+		b.Debug = d
+	}
+}

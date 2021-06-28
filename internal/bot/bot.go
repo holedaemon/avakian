@@ -2,6 +2,7 @@
 package bot
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -20,6 +21,7 @@ var (
 )
 
 type Bot struct {
+	Debug         bool
 	DefaultPrefix string
 
 	DB     *sql.DB
@@ -35,8 +37,13 @@ func NewBot(opts ...Option) (*Bot, error) {
 	}
 
 	if err := b.defaults(); err != nil {
-		return nil, err
+		if !b.Debug {
+			return nil, err
+		}
 	}
+
+	b.Client.OnReady(b.handleReady)
+	b.Client.OnMessageCreate(b.handleMessage)
 
 	return b, nil
 }
@@ -59,4 +66,12 @@ func (b *Bot) defaults() error {
 	}
 
 	return nil
+}
+
+func (b *Bot) Connect(ctx context.Context) error {
+	return b.Client.Connect(ctx)
+}
+
+func (b *Bot) Disconnect() {
+	b.Client.Disconnect()
 }
