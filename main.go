@@ -45,7 +45,6 @@ func main() {
 	}
 
 	logger := zapx.Must(*debug)
-
 	b, err := bot.NewBot(bot.WithClient(client), bot.WithDebug(*debug), bot.WithDefaultPrefix(prefix), bot.WithLogger(logger))
 	if err != nil {
 		die("error creating bot:", err.Error())

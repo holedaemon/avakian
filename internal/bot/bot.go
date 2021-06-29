@@ -9,6 +9,7 @@ import (
 
 	"github.com/erei/avakian/internal/pkg/zapx"
 	"github.com/skwair/harmony"
+	"github.com/skwair/harmony/discord"
 	"go.uber.org/zap"
 )
 
@@ -74,4 +75,52 @@ func (b *Bot) Connect(ctx context.Context) error {
 
 func (b *Bot) Disconnect() {
 	b.Client.Disconnect()
+}
+
+func (b *Bot) FetchGuild(ctx context.Context, id string) (*discord.Guild, error) {
+	sg := b.Client.State.Guild(id)
+	if sg != nil {
+		return sg, nil
+	}
+
+	gr := b.Client.Guild(id)
+	ag, err := gr.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return ag, nil
+}
+
+func (b *Bot) FetchChannel(ctx context.Context, id string) (*discord.Channel, error) {
+	sc := b.Client.State.Channel(id)
+	if sc != nil {
+		return sc, nil
+	}
+
+	cr := b.Client.Channel(id)
+	ac, err := cr.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return ac, nil
+}
+
+func (b *Bot) FetchMember(ctx context.Context, mid, gid string) (*discord.GuildMember, error) {
+	g := b.Client.Guild(gid)
+
+	m, err := g.Member(ctx, mid)
+	if err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
+func (b *Bot) MessageSession(msg *discord.Message) *MessageSession {
+	return &MessageSession{
+		Msg: msg,
+		Bot: b,
+	}
 }
