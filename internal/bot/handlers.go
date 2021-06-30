@@ -15,6 +15,12 @@ func (b *Bot) handleReady(r *harmony.Ready) {
 }
 
 func (b *Bot) handleMessage(m *discord.Message) {
+	defer func() {
+		if r := recover(); r != nil {
+			b.Logger.Warn("recovered from panic", zap.Any("recoverer", r))
+		}
+	}()
+
 	if m.Content == "" || m.Author.Bot {
 		return
 	}
