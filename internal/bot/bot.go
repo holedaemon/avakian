@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/erei/avakian/internal/pkg/zapx"
 	"github.com/skwair/harmony"
@@ -119,8 +120,11 @@ func (b *Bot) FetchMember(ctx context.Context, mid, gid string) (*discord.GuildM
 }
 
 func (b *Bot) MessageSession(msg *discord.Message) *MessageSession {
+	argv := strings.Split(msg.Content, " ")
+
 	return &MessageSession{
-		Msg: msg,
-		Bot: b,
+		Msg:  msg,
+		Bot:  b,
+		Argv: argv,
 	}
 }

@@ -7,8 +7,9 @@ import (
 )
 
 type MessageSession struct {
-	Msg *discord.Message
-	Bot *Bot
+	Msg  *discord.Message
+	Argv []string
+	Bot  *Bot
 }
 
 func (ms *MessageSession) Reply(ctx context.Context, msg string) error {
@@ -19,7 +20,6 @@ func (ms *MessageSession) Reply(ctx context.Context, msg string) error {
 
 type MessageCommand struct {
 	permissions int
-	flags       string
 	fn          func(context.Context, *MessageSession) error
 }
 
@@ -30,10 +30,6 @@ func (mc *MessageCommand) HasPermission(p int) bool {
 	}
 
 	return (p & mc.permissions) != 0
-}
-
-func (mc *MessageCommand) Flags() string {
-	return mc.flags
 }
 
 func (mc *MessageCommand) Execute(ctx context.Context, s Session) error {
