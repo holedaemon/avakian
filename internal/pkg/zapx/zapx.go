@@ -1,7 +1,9 @@
 // Package zapx provides useful extentions to Uber's Zap.
 package zapx
 
-import "go.uber.org/zap"
+import (
+	"go.uber.org/zap"
+)
 
 func New(debug bool) (*zap.Logger, error) {
 	if debug {
@@ -28,4 +30,8 @@ func Must(debug bool) *zap.Logger {
 	}
 
 	return l
+}
+
+func Guild(id string) zap.Field {
+	return zap.String("guild", id)
 }

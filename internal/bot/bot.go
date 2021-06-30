@@ -46,6 +46,7 @@ func NewBot(opts ...Option) (*Bot, error) {
 
 	b.Client.OnReady(b.handleReady)
 	b.Client.OnMessageCreate(b.handleMessage)
+	b.Client.OnGuildCreate(b.handleGuildCreate)
 
 	return b, nil
 }

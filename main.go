@@ -2,16 +2,25 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
+
+	_ "github.com/jackc/pgx/stdlib"
 
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/erei/avakian/internal/bot"
 	"github.com/erei/avakian/internal/pkg/zapx"
 	"github.com/joho/godotenv"
 	"github.com/skwair/harmony"
+)
+
+const (
+	dbMaxAttempts = 20
+	dbTimeout     = 10 * time.Second
 )
 
 func die(a ...interface{}) {
@@ -37,6 +46,7 @@ func main() {
 
 	token := os.Getenv("AVAKIAN_DISCORD_TOKEN")
 	prefix := os.Getenv("AVAKIAN_DISCORD_PREFIX")
+	dsn := os.Getenv("AVAKIAN_DB_DSN")
 
 	client, err := harmony.NewClient(token)
 	if err != nil {
@@ -44,8 +54,34 @@ func main() {
 		return
 	}
 
+	var db *sql.DB
+	connected := false
+
+	for i := 0; i < dbMaxAttempts && !connected; i++ {
+		conn, err := sql.Open("pgx", dsn)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "unable to connect to db, trying again in %s: %s\n", dbTimeout, err.Error())
+			time.Sleep(dbTimeout)
+			continue
+		}
+
+		if err := conn.Ping(); err != nil {
+			fmt.Fprintf(os.Stderr, "unable to ping db, trying again in %s: %s\n", dbTimeout, err.Error())
+			time.Sleep(dbTimeout)
+			continue
+		}
+
+		connected = true
+		db = conn
+	}
+
 	logger := zapx.Must(*debug)
-	b, err := bot.NewBot(bot.WithClient(client), bot.WithDebug(*debug), bot.WithDefaultPrefix(prefix), bot.WithLogger(logger))
+	b, err := bot.NewBot(bot.WithClient(client),
+		bot.WithDebug(*debug),
+		bot.WithDefaultPrefix(prefix),
+		bot.WithLogger(logger),
+		bot.WithDB(db),
+	)
 	if err != nil {
 		die("error creating bot:", err.Error())
 		return

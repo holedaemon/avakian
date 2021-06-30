@@ -5,14 +5,44 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/erei/avakian/internal/database/models"
+	"github.com/erei/avakian/internal/pkg/zapx"
 	"github.com/skwair/harmony"
 	"github.com/skwair/harmony/discord"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/zikaeroh/ctxlog"
 	"go.uber.org/zap"
 )
 
 func (b *Bot) handleReady(r *harmony.Ready) {
 	b.Logger.Info("connected to Discord")
+}
+
+func (b *Bot) handleGuildCreate(g *discord.Guild) {
+	b.Logger.Info("received GUILD_CREATE event", zapx.Guild(g.ID))
+
+	ctx := context.Background()
+	exists, err := models.Guilds(qm.Where("guild_snowflake = ?", g.ID)).Exists(ctx, b.DB)
+	if err != nil {
+		b.Logger.Error("error querying db for guild", zapx.Guild(g.ID), zap.Error(err))
+		return
+	}
+
+	if !exists {
+		b.Logger.Info("creating new record for guild", zapx.Guild(g.ID))
+
+		dg := &models.Guild{
+			GuildSnowflake: g.ID,
+		}
+
+		if err := dg.Insert(ctx, b.DB, boil.Infer()); err != nil {
+			b.Logger.Error("error creating db record for guild", zapx.Guild(g.ID), zap.Error(err))
+			return
+		}
+
+		ctxlog.Info(ctx, "created db record for guild", zapx.Guild(g.ID))
+	}
 }
 
 func (b *Bot) handleMessage(m *discord.Message) {
