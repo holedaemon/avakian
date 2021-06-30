@@ -56,13 +56,21 @@ func (b *Bot) handleMessage(m *discord.Message) {
 		return
 	}
 
-	b.Logger.Debug("received message", zap.String("content", m.Content))
+	ctx := context.Background()
+	ctx = ctxlog.WithLogger(ctx, b.Logger)
+
+	ctxlog.Debug(ctx, "received message", zap.String("content", m.Content))
+
+	prefs, err := b.GuildPrefixes(ctx, m.GuildID)
+	if err != nil {
+		ctxlog.Error(ctx, "error getting guild prefixes, reverting to default", zap.Error(err))
+	}
 
 	argv := strings.Split(m.Content, " ")
 	prefix := argv[0][:1]
 	cmd := argv[0][1:]
 
-	if prefix != b.DefaultPrefix {
+	if prefix != b.DefaultPrefix && !stringInSlice(prefix, prefs) {
 		return
 	}
 
@@ -70,9 +78,6 @@ func (b *Bot) handleMessage(m *discord.Message) {
 	if !ok {
 		return
 	}
-
-	ctx := context.Background()
-	ctx = ctxlog.WithLogger(ctx, b.Logger)
 
 	ch, err := b.FetchChannel(ctx, m.ChannelID)
 	if err != nil {
