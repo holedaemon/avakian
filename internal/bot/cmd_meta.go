@@ -24,7 +24,6 @@ var cmdFlag = &MessageCommand{
 func cmdFlagFn(ctx context.Context, s *MessageSession) error {
 	opts, _, err := getopt.Getopts(s.Argv, "b")
 	if err != nil {
-		s.Reply(ctx, "Unable to parse flags")
 		return err
 	}
 
