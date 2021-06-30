@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	"net/http"
 	"strings"
 
 	"github.com/skwair/harmony"
@@ -70,5 +71,24 @@ func (b *Bot) handleMessage(m *discord.Message) {
 	sess := b.MessageSession(m)
 	if err := com.Execute(ctx, sess); err != nil {
 		ctxlog.Error(ctx, "error during command execution", zap.Error(err))
+
+		switch err := err.(type) {
+		case discord.APIError:
+			switch err.HTTPCode {
+			case http.StatusUnauthorized:
+				if err := sess.Reply(ctx, "According to Discord, I'm not authorized to perform whatever it is I'm doing"); err != nil {
+					ctxlog.Error(ctx, "error sending message", zap.Error(err))
+				}
+			case http.StatusForbidden:
+				if err := sess.Reply(ctx, "According to Discord, I'm FORBIDDEN from doing whatever I was asked to do"); err != nil {
+					ctxlog.Error(ctx, "error sending message", zap.Error(err))
+				}
+			}
+		default:
+			if err := sess.Reply(ctx, "An unknown error has occurred, see if you can make sense of it: `"+err.Error()+"`"); err != nil {
+				ctxlog.Error(ctx, "error sending message", zap.Error(err))
+			}
+		}
+
 	}
 }
