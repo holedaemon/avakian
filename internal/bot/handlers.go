@@ -2,8 +2,11 @@ package bot
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/erei/avakian/internal/database/models"
 	"github.com/erei/avakian/internal/pkg/zapx"
@@ -57,6 +60,9 @@ func (b *Bot) handleMessage(m *discord.Message) {
 	}
 
 	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
 	ctx = ctxlog.WithLogger(ctx, b.Logger)
 
 	ctxlog.Debug(ctx, "received message", zap.String("content", m.Content))
@@ -103,8 +109,28 @@ func (b *Bot) handleMessage(m *discord.Message) {
 		return
 	}
 
+	tx, err := b.DB.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		ctxlog.Error(ctx, "error beginning db transaction", zap.Error(err))
+		return
+	}
+
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			if errors.Is(err, sql.ErrTxDone) {
+				ctxlog.Debug(ctx, "transaction done")
+				return
+			}
+
+			ctxlog.Error(ctx, "error rolling back transaction", zap.Error(err))
+		}
+	}()
+
 	sess := b.MessageSession(m)
-	if err := com.Execute(ctx, sess); err != nil {
+	sess.Tx = tx
+
+	err = com.Execute(ctx, sess)
+	if err != nil {
 		ctxlog.Error(ctx, "error during command execution", zap.Error(err))
 
 		switch err := err.(type) {
@@ -124,6 +150,9 @@ func (b *Bot) handleMessage(m *discord.Message) {
 				ctxlog.Error(ctx, "error sending message", zap.Error(err))
 			}
 		}
-
+	} else {
+		if err := tx.Commit(); err != nil {
+			ctxlog.Error(ctx, "error committing transaction", zap.Error(err))
+		}
 	}
 }

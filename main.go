@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/jackc/pgx/v4/stdlib"
 
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/erei/avakian/internal/bot"

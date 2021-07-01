@@ -2,20 +2,32 @@ package bot
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 
 	"github.com/skwair/harmony/discord"
 )
 
 type MessageSession struct {
-	Msg  *discord.Message
+	Msg *discord.Message
+	// Entire message
 	Argv []string
+	// Without command trigger
+	Args []string
 	Bot  *Bot
+
+	Tx *sql.Tx
 }
 
 func (ms *MessageSession) Reply(ctx context.Context, msg string) error {
 	channel := ms.Bot.Client.Channel(ms.Msg.ChannelID)
 	_, err := channel.SendMessage(ctx, msg)
 	return err
+}
+
+func (ms *MessageSession) Replyf(ctx context.Context, msg string, args ...interface{}) error {
+	msg = fmt.Sprintf(msg, args...)
+	return ms.Reply(ctx, msg)
 }
 
 type MessageCommand struct {

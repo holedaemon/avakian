@@ -129,6 +129,7 @@ func (b *Bot) MessageSession(msg *discord.Message) *MessageSession {
 		Msg:  msg,
 		Bot:  b,
 		Argv: argv,
+		Args: argv[1:],
 	}
 }
 
