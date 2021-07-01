@@ -25,17 +25,17 @@ var (
 
 	cmdDeletePrefix = &MessageCommand{
 		permissions: discord.PermissionManageGuild,
-		fn:          cmdRemovePrefixFn,
+		fn:          cmdPrefixRemoveFn,
 	}
 
 	prefixCommands = map[string]*MessageCommand{
 		"add": {
 			permissions: discord.PermissionManageGuild,
-			fn:          cmdAddPrefixFn,
+			fn:          cmdPrefixAddFn,
 		},
 		"list": {
 			permissions: discord.PermissionSendMessages,
-			fn:          cmdListPrefixFn,
+			fn:          cmdPrefixListFn,
 		},
 		"remove": cmdDeletePrefix,
 		"delete": cmdDeletePrefix,
@@ -77,7 +77,7 @@ func cmdPrefixFn(ctx context.Context, s *MessageSession) error {
 	return nil
 }
 
-func cmdAddPrefixFn(ctx context.Context, s *MessageSession) error {
+func cmdPrefixAddFn(ctx context.Context, s *MessageSession) error {
 	if len(s.Args) == 0 {
 		return s.Reply(ctx, "At least one argument is required")
 	}
@@ -125,7 +125,7 @@ func cmdAddPrefixFn(ctx context.Context, s *MessageSession) error {
 	return s.Replyf(ctx, "Character %s will henceforth be accepted as a prefix", newPrefix)
 }
 
-func cmdRemovePrefixFn(ctx context.Context, s *MessageSession) error {
+func cmdPrefixRemoveFn(ctx context.Context, s *MessageSession) error {
 	if len(s.Args) == 0 {
 		return s.Reply(ctx, "At least 1 argument is required")
 	}
@@ -158,7 +158,7 @@ func cmdRemovePrefixFn(ctx context.Context, s *MessageSession) error {
 	return s.Reply(ctx, "Prefix has been removed")
 }
 
-func cmdListPrefixFn(ctx context.Context, s *MessageSession) error {
+func cmdPrefixListFn(ctx context.Context, s *MessageSession) error {
 	var sb strings.Builder
 	sb.WriteString("Registered prefixes:\n```")
 
