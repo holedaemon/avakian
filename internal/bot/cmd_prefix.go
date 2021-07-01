@@ -61,9 +61,9 @@ func cmdAddPrefixFn(ctx context.Context, s *MessageSession) error {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			count = 0
+		} else {
+			return err
 		}
-
-		return err
 	}
 
 	if count >= guildMaxPrefix {
