@@ -21,110 +21,117 @@ import (
 	"github.com/volatiletech/strmangle"
 )
 
-// Prefix is an object representing the database table.
-type Prefix struct {
+// Pronoun is an object representing the database table.
+type Pronoun struct {
 	ID             int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
 	GuildSnowflake string    `boil:"guild_snowflake" json:"guild_snowflake" toml:"guild_snowflake" yaml:"guild_snowflake"`
-	Prefix         string    `boil:"prefix" json:"prefix" toml:"prefix" yaml:"prefix"`
+	Pronoun        string    `boil:"pronoun" json:"pronoun" toml:"pronoun" yaml:"pronoun"`
+	RoleSnowflake  string    `boil:"role_snowflake" json:"role_snowflake" toml:"role_snowflake" yaml:"role_snowflake"`
 	CreatedAt      time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt      time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
-	R *prefixR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L prefixL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *pronounR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L pronounL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
-var PrefixColumns = struct {
+var PronounColumns = struct {
 	ID             string
 	GuildSnowflake string
-	Prefix         string
+	Pronoun        string
+	RoleSnowflake  string
 	CreatedAt      string
 	UpdatedAt      string
 }{
 	ID:             "id",
 	GuildSnowflake: "guild_snowflake",
-	Prefix:         "prefix",
+	Pronoun:        "pronoun",
+	RoleSnowflake:  "role_snowflake",
 	CreatedAt:      "created_at",
 	UpdatedAt:      "updated_at",
 }
 
-var PrefixTableColumns = struct {
+var PronounTableColumns = struct {
 	ID             string
 	GuildSnowflake string
-	Prefix         string
+	Pronoun        string
+	RoleSnowflake  string
 	CreatedAt      string
 	UpdatedAt      string
 }{
-	ID:             "prefixes.id",
-	GuildSnowflake: "prefixes.guild_snowflake",
-	Prefix:         "prefixes.prefix",
-	CreatedAt:      "prefixes.created_at",
-	UpdatedAt:      "prefixes.updated_at",
+	ID:             "pronouns.id",
+	GuildSnowflake: "pronouns.guild_snowflake",
+	Pronoun:        "pronouns.pronoun",
+	RoleSnowflake:  "pronouns.role_snowflake",
+	CreatedAt:      "pronouns.created_at",
+	UpdatedAt:      "pronouns.updated_at",
 }
 
 // Generated where
 
-var PrefixWhere = struct {
+var PronounWhere = struct {
 	ID             whereHelperint64
 	GuildSnowflake whereHelperstring
-	Prefix         whereHelperstring
+	Pronoun        whereHelperstring
+	RoleSnowflake  whereHelperstring
 	CreatedAt      whereHelpertime_Time
 	UpdatedAt      whereHelpertime_Time
 }{
-	ID:             whereHelperint64{field: "\"prefixes\".\"id\""},
-	GuildSnowflake: whereHelperstring{field: "\"prefixes\".\"guild_snowflake\""},
-	Prefix:         whereHelperstring{field: "\"prefixes\".\"prefix\""},
-	CreatedAt:      whereHelpertime_Time{field: "\"prefixes\".\"created_at\""},
-	UpdatedAt:      whereHelpertime_Time{field: "\"prefixes\".\"updated_at\""},
+	ID:             whereHelperint64{field: "\"pronouns\".\"id\""},
+	GuildSnowflake: whereHelperstring{field: "\"pronouns\".\"guild_snowflake\""},
+	Pronoun:        whereHelperstring{field: "\"pronouns\".\"pronoun\""},
+	RoleSnowflake:  whereHelperstring{field: "\"pronouns\".\"role_snowflake\""},
+	CreatedAt:      whereHelpertime_Time{field: "\"pronouns\".\"created_at\""},
+	UpdatedAt:      whereHelpertime_Time{field: "\"pronouns\".\"updated_at\""},
 }
 
-// PrefixRels is where relationship names are stored.
-var PrefixRels = struct {
+// PronounRels is where relationship names are stored.
+var PronounRels = struct {
 	GuildSnowflakeGuild string
 }{
 	GuildSnowflakeGuild: "GuildSnowflakeGuild",
 }
 
-// prefixR is where relationships are stored.
-type prefixR struct {
+// pronounR is where relationships are stored.
+type pronounR struct {
 	GuildSnowflakeGuild *Guild `boil:"GuildSnowflakeGuild" json:"GuildSnowflakeGuild" toml:"GuildSnowflakeGuild" yaml:"GuildSnowflakeGuild"`
 }
 
 // NewStruct creates a new relationship struct
-func (*prefixR) NewStruct() *prefixR {
-	return &prefixR{}
+func (*pronounR) NewStruct() *pronounR {
+	return &pronounR{}
 }
 
-// prefixL is where Load methods for each relationship are stored.
-type prefixL struct{}
+// pronounL is where Load methods for each relationship are stored.
+type pronounL struct{}
 
 var (
-	prefixAllColumns            = []string{"id", "guild_snowflake", "prefix", "created_at", "updated_at"}
-	prefixColumnsWithoutDefault = []string{"guild_snowflake", "prefix"}
-	prefixColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
-	prefixPrimaryKeyColumns     = []string{"id"}
+	pronounAllColumns            = []string{"id", "guild_snowflake", "pronoun", "role_snowflake", "created_at", "updated_at"}
+	pronounColumnsWithoutDefault = []string{"guild_snowflake", "pronoun", "role_snowflake"}
+	pronounColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
+	pronounPrimaryKeyColumns     = []string{"id"}
 )
 
 type (
-	// PrefixSlice is an alias for a slice of pointers to Prefix.
-	// This should almost always be used instead of []Prefix.
-	PrefixSlice []*Prefix
+	// PronounSlice is an alias for a slice of pointers to Pronoun.
+	// This should almost always be used instead of []Pronoun.
+	PronounSlice []*Pronoun
 
-	prefixQuery struct {
+	pronounQuery struct {
 		*queries.Query
 	}
 )
 
 // Cache for insert, update and upsert
 var (
-	prefixType                 = reflect.TypeOf(&Prefix{})
-	prefixMapping              = queries.MakeStructMapping(prefixType)
-	prefixPrimaryKeyMapping, _ = queries.BindMapping(prefixType, prefixMapping, prefixPrimaryKeyColumns)
-	prefixInsertCacheMut       sync.RWMutex
-	prefixInsertCache          = make(map[string]insertCache)
-	prefixUpdateCacheMut       sync.RWMutex
-	prefixUpdateCache          = make(map[string]updateCache)
-	prefixUpsertCacheMut       sync.RWMutex
-	prefixUpsertCache          = make(map[string]insertCache)
+	pronounType                 = reflect.TypeOf(&Pronoun{})
+	pronounMapping              = queries.MakeStructMapping(pronounType)
+	pronounPrimaryKeyMapping, _ = queries.BindMapping(pronounType, pronounMapping, pronounPrimaryKeyColumns)
+	pronounInsertCacheMut       sync.RWMutex
+	pronounInsertCache          = make(map[string]insertCache)
+	pronounUpdateCacheMut       sync.RWMutex
+	pronounUpdateCache          = make(map[string]updateCache)
+	pronounUpsertCacheMut       sync.RWMutex
+	pronounUpsertCache          = make(map[string]insertCache)
 )
 
 var (
@@ -135,9 +142,9 @@ var (
 	_ = qmhelper.Where
 )
 
-// One returns a single prefix record from the query.
-func (q prefixQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Prefix, error) {
-	o := &Prefix{}
+// One returns a single pronoun record from the query.
+func (q pronounQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Pronoun, error) {
+	o := &Pronoun{}
 
 	queries.SetLimit(q.Query, 1)
 
@@ -146,26 +153,26 @@ func (q prefixQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Prefi
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for prefixes")
+		return nil, errors.Wrap(err, "models: failed to execute a one query for pronouns")
 	}
 
 	return o, nil
 }
 
-// All returns all Prefix records from the query.
-func (q prefixQuery) All(ctx context.Context, exec boil.ContextExecutor) (PrefixSlice, error) {
-	var o []*Prefix
+// All returns all Pronoun records from the query.
+func (q pronounQuery) All(ctx context.Context, exec boil.ContextExecutor) (PronounSlice, error) {
+	var o []*Pronoun
 
 	err := q.Bind(ctx, exec, &o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to Prefix slice")
+		return nil, errors.Wrap(err, "models: failed to assign all query results to Pronoun slice")
 	}
 
 	return o, nil
 }
 
-// Count returns the count of all Prefix records in the query.
-func (q prefixQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+// Count returns the count of all Pronoun records in the query.
+func (q pronounQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -173,14 +180,14 @@ func (q prefixQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int6
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count prefixes rows")
+		return 0, errors.Wrap(err, "models: failed to count pronouns rows")
 	}
 
 	return count, nil
 }
 
 // Exists checks if the row exists in the table.
-func (q prefixQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
+func (q pronounQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -189,14 +196,14 @@ func (q prefixQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (boo
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if prefixes exists")
+		return false, errors.Wrap(err, "models: failed to check if pronouns exists")
 	}
 
 	return count > 0, nil
 }
 
 // GuildSnowflakeGuild pointed to by the foreign key.
-func (o *Prefix) GuildSnowflakeGuild(mods ...qm.QueryMod) guildQuery {
+func (o *Pronoun) GuildSnowflakeGuild(mods ...qm.QueryMod) guildQuery {
 	queryMods := []qm.QueryMod{
 		qm.Where("\"guild_snowflake\" = ?", o.GuildSnowflake),
 	}
@@ -211,20 +218,20 @@ func (o *Prefix) GuildSnowflakeGuild(mods ...qm.QueryMod) guildQuery {
 
 // LoadGuildSnowflakeGuild allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (prefixL) LoadGuildSnowflakeGuild(ctx context.Context, e boil.ContextExecutor, singular bool, maybePrefix interface{}, mods queries.Applicator) error {
-	var slice []*Prefix
-	var object *Prefix
+func (pronounL) LoadGuildSnowflakeGuild(ctx context.Context, e boil.ContextExecutor, singular bool, maybePronoun interface{}, mods queries.Applicator) error {
+	var slice []*Pronoun
+	var object *Pronoun
 
 	if singular {
-		object = maybePrefix.(*Prefix)
+		object = maybePronoun.(*Pronoun)
 	} else {
-		slice = *maybePrefix.(*[]*Prefix)
+		slice = *maybePronoun.(*[]*Pronoun)
 	}
 
 	args := make([]interface{}, 0, 1)
 	if singular {
 		if object.R == nil {
-			object.R = &prefixR{}
+			object.R = &pronounR{}
 		}
 		args = append(args, object.GuildSnowflake)
 
@@ -232,7 +239,7 @@ func (prefixL) LoadGuildSnowflakeGuild(ctx context.Context, e boil.ContextExecut
 	Outer:
 		for _, obj := range slice {
 			if obj.R == nil {
-				obj.R = &prefixR{}
+				obj.R = &pronounR{}
 			}
 
 			for _, a := range args {
@@ -285,7 +292,7 @@ func (prefixL) LoadGuildSnowflakeGuild(ctx context.Context, e boil.ContextExecut
 		if foreign.R == nil {
 			foreign.R = &guildR{}
 		}
-		foreign.R.GuildSnowflakePrefixes = append(foreign.R.GuildSnowflakePrefixes, object)
+		foreign.R.GuildSnowflakePronouns = append(foreign.R.GuildSnowflakePronouns, object)
 		return nil
 	}
 
@@ -296,7 +303,7 @@ func (prefixL) LoadGuildSnowflakeGuild(ctx context.Context, e boil.ContextExecut
 				if foreign.R == nil {
 					foreign.R = &guildR{}
 				}
-				foreign.R.GuildSnowflakePrefixes = append(foreign.R.GuildSnowflakePrefixes, local)
+				foreign.R.GuildSnowflakePronouns = append(foreign.R.GuildSnowflakePronouns, local)
 				break
 			}
 		}
@@ -305,10 +312,10 @@ func (prefixL) LoadGuildSnowflakeGuild(ctx context.Context, e boil.ContextExecut
 	return nil
 }
 
-// SetGuildSnowflakeGuild of the prefix to the related item.
+// SetGuildSnowflakeGuild of the pronoun to the related item.
 // Sets o.R.GuildSnowflakeGuild to related.
-// Adds o to related.R.GuildSnowflakePrefixes.
-func (o *Prefix) SetGuildSnowflakeGuild(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Guild) error {
+// Adds o to related.R.GuildSnowflakePronouns.
+func (o *Pronoun) SetGuildSnowflakeGuild(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Guild) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -317,9 +324,9 @@ func (o *Prefix) SetGuildSnowflakeGuild(ctx context.Context, exec boil.ContextEx
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE \"prefixes\" SET %s WHERE %s",
+		"UPDATE \"pronouns\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 1, []string{"guild_snowflake"}),
-		strmangle.WhereClause("\"", "\"", 2, prefixPrimaryKeyColumns),
+		strmangle.WhereClause("\"", "\"", 2, pronounPrimaryKeyColumns),
 	)
 	values := []interface{}{related.GuildSnowflake, o.ID}
 
@@ -334,7 +341,7 @@ func (o *Prefix) SetGuildSnowflakeGuild(ctx context.Context, exec boil.ContextEx
 
 	o.GuildSnowflake = related.GuildSnowflake
 	if o.R == nil {
-		o.R = &prefixR{
+		o.R = &pronounR{
 			GuildSnowflakeGuild: related,
 		}
 	} else {
@@ -343,52 +350,52 @@ func (o *Prefix) SetGuildSnowflakeGuild(ctx context.Context, exec boil.ContextEx
 
 	if related.R == nil {
 		related.R = &guildR{
-			GuildSnowflakePrefixes: PrefixSlice{o},
+			GuildSnowflakePronouns: PronounSlice{o},
 		}
 	} else {
-		related.R.GuildSnowflakePrefixes = append(related.R.GuildSnowflakePrefixes, o)
+		related.R.GuildSnowflakePronouns = append(related.R.GuildSnowflakePronouns, o)
 	}
 
 	return nil
 }
 
-// Prefixes retrieves all the records using an executor.
-func Prefixes(mods ...qm.QueryMod) prefixQuery {
-	mods = append(mods, qm.From("\"prefixes\""))
-	return prefixQuery{NewQuery(mods...)}
+// Pronouns retrieves all the records using an executor.
+func Pronouns(mods ...qm.QueryMod) pronounQuery {
+	mods = append(mods, qm.From("\"pronouns\""))
+	return pronounQuery{NewQuery(mods...)}
 }
 
-// FindPrefix retrieves a single record by ID with an executor.
+// FindPronoun retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindPrefix(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCols ...string) (*Prefix, error) {
-	prefixObj := &Prefix{}
+func FindPronoun(ctx context.Context, exec boil.ContextExecutor, iD int64, selectCols ...string) (*Pronoun, error) {
+	pronounObj := &Pronoun{}
 
 	sel := "*"
 	if len(selectCols) > 0 {
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"prefixes\" where \"id\"=$1", sel,
+		"select %s from \"pronouns\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
 
-	err := q.Bind(ctx, exec, prefixObj)
+	err := q.Bind(ctx, exec, pronounObj)
 	if err != nil {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from prefixes")
+		return nil, errors.Wrap(err, "models: unable to select from pronouns")
 	}
 
-	return prefixObj, nil
+	return pronounObj, nil
 }
 
 // Insert a single record using an executor.
 // See boil.Columns.InsertColumnSet documentation to understand column list inference for inserts.
-func (o *Prefix) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
+func (o *Pronoun) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if o == nil {
-		return errors.New("models: no prefixes provided for insertion")
+		return errors.New("models: no pronouns provided for insertion")
 	}
 
 	var err error
@@ -403,33 +410,33 @@ func (o *Prefix) Insert(ctx context.Context, exec boil.ContextExecutor, columns 
 		}
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(prefixColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(pronounColumnsWithDefault, o)
 
 	key := makeCacheKey(columns, nzDefaults)
-	prefixInsertCacheMut.RLock()
-	cache, cached := prefixInsertCache[key]
-	prefixInsertCacheMut.RUnlock()
+	pronounInsertCacheMut.RLock()
+	cache, cached := pronounInsertCache[key]
+	pronounInsertCacheMut.RUnlock()
 
 	if !cached {
 		wl, returnColumns := columns.InsertColumnSet(
-			prefixAllColumns,
-			prefixColumnsWithDefault,
-			prefixColumnsWithoutDefault,
+			pronounAllColumns,
+			pronounColumnsWithDefault,
+			pronounColumnsWithoutDefault,
 			nzDefaults,
 		)
 
-		cache.valueMapping, err = queries.BindMapping(prefixType, prefixMapping, wl)
+		cache.valueMapping, err = queries.BindMapping(pronounType, pronounMapping, wl)
 		if err != nil {
 			return err
 		}
-		cache.retMapping, err = queries.BindMapping(prefixType, prefixMapping, returnColumns)
+		cache.retMapping, err = queries.BindMapping(pronounType, pronounMapping, returnColumns)
 		if err != nil {
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO \"prefixes\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"pronouns\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO \"prefixes\" %sDEFAULT VALUES%s"
+			cache.query = "INSERT INTO \"pronouns\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
@@ -457,22 +464,22 @@ func (o *Prefix) Insert(ctx context.Context, exec boil.ContextExecutor, columns 
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into prefixes")
+		return errors.Wrap(err, "models: unable to insert into pronouns")
 	}
 
 	if !cached {
-		prefixInsertCacheMut.Lock()
-		prefixInsertCache[key] = cache
-		prefixInsertCacheMut.Unlock()
+		pronounInsertCacheMut.Lock()
+		pronounInsertCache[key] = cache
+		pronounInsertCacheMut.Unlock()
 	}
 
 	return nil
 }
 
-// Update uses an executor to update the Prefix.
+// Update uses an executor to update the Pronoun.
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
-func (o *Prefix) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
+func (o *Pronoun) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
@@ -481,28 +488,28 @@ func (o *Prefix) Update(ctx context.Context, exec boil.ContextExecutor, columns 
 
 	var err error
 	key := makeCacheKey(columns, nil)
-	prefixUpdateCacheMut.RLock()
-	cache, cached := prefixUpdateCache[key]
-	prefixUpdateCacheMut.RUnlock()
+	pronounUpdateCacheMut.RLock()
+	cache, cached := pronounUpdateCache[key]
+	pronounUpdateCacheMut.RUnlock()
 
 	if !cached {
 		wl := columns.UpdateColumnSet(
-			prefixAllColumns,
-			prefixPrimaryKeyColumns,
+			pronounAllColumns,
+			pronounPrimaryKeyColumns,
 		)
 
 		if !columns.IsWhitelist() {
 			wl = strmangle.SetComplement(wl, []string{"created_at"})
 		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update prefixes, could not build whitelist")
+			return errors.New("models: unable to update pronouns, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE \"prefixes\" SET %s WHERE %s",
+		cache.query = fmt.Sprintf("UPDATE \"pronouns\" SET %s WHERE %s",
 			strmangle.SetParamNames("\"", "\"", 1, wl),
-			strmangle.WhereClause("\"", "\"", len(wl)+1, prefixPrimaryKeyColumns),
+			strmangle.WhereClause("\"", "\"", len(wl)+1, pronounPrimaryKeyColumns),
 		)
-		cache.valueMapping, err = queries.BindMapping(prefixType, prefixMapping, append(wl, prefixPrimaryKeyColumns...))
+		cache.valueMapping, err = queries.BindMapping(pronounType, pronounMapping, append(wl, pronounPrimaryKeyColumns...))
 		if err != nil {
 			return err
 		}
@@ -517,32 +524,32 @@ func (o *Prefix) Update(ctx context.Context, exec boil.ContextExecutor, columns 
 	}
 	_, err = exec.ExecContext(ctx, cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update prefixes row")
+		return errors.Wrap(err, "models: unable to update pronouns row")
 	}
 
 	if !cached {
-		prefixUpdateCacheMut.Lock()
-		prefixUpdateCache[key] = cache
-		prefixUpdateCacheMut.Unlock()
+		pronounUpdateCacheMut.Lock()
+		pronounUpdateCache[key] = cache
+		pronounUpdateCacheMut.Unlock()
 	}
 
 	return nil
 }
 
 // UpdateAll updates all rows with the specified column values.
-func (q prefixQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) error {
+func (q pronounQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) error {
 	queries.SetUpdate(q.Query, cols)
 
 	_, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for prefixes")
+		return errors.Wrap(err, "models: unable to update all for pronouns")
 	}
 
 	return nil
 }
 
 // UpdateAll updates all rows with the specified column values, using an executor.
-func (o PrefixSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) error {
+func (o PronounSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) error {
 	ln := int64(len(o))
 	if ln == 0 {
 		return nil
@@ -564,13 +571,13 @@ func (o PrefixSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, c
 
 	// Append all of the primary key values for each column
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), prefixPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), pronounPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE \"prefixes\" SET %s WHERE %s",
+	sql := fmt.Sprintf("UPDATE \"pronouns\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, prefixPrimaryKeyColumns, len(o)))
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, pronounPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -579,7 +586,7 @@ func (o PrefixSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, c
 	}
 	_, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in prefix slice")
+		return errors.Wrap(err, "models: unable to update all in pronoun slice")
 	}
 
 	return nil
@@ -587,9 +594,9 @@ func (o PrefixSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, c
 
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *Prefix) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
+func (o *Pronoun) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
-		return errors.New("models: no prefixes provided for upsert")
+		return errors.New("models: no pronouns provided for upsert")
 	}
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
@@ -600,7 +607,7 @@ func (o *Prefix) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOn
 		o.UpdatedAt = currTime
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(prefixColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(pronounColumnsWithDefault, o)
 
 	// Build cache key in-line uglily - mysql vs psql problems
 	buf := strmangle.GetBuffer()
@@ -630,41 +637,41 @@ func (o *Prefix) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOn
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
-	prefixUpsertCacheMut.RLock()
-	cache, cached := prefixUpsertCache[key]
-	prefixUpsertCacheMut.RUnlock()
+	pronounUpsertCacheMut.RLock()
+	cache, cached := pronounUpsertCache[key]
+	pronounUpsertCacheMut.RUnlock()
 
 	var err error
 
 	if !cached {
 		insert, ret := insertColumns.InsertColumnSet(
-			prefixAllColumns,
-			prefixColumnsWithDefault,
-			prefixColumnsWithoutDefault,
+			pronounAllColumns,
+			pronounColumnsWithDefault,
+			pronounColumnsWithoutDefault,
 			nzDefaults,
 		)
 		update := updateColumns.UpdateColumnSet(
-			prefixAllColumns,
-			prefixPrimaryKeyColumns,
+			pronounAllColumns,
+			pronounPrimaryKeyColumns,
 		)
 
 		if updateOnConflict && len(update) == 0 {
-			return errors.New("models: unable to upsert prefixes, could not build update column list")
+			return errors.New("models: unable to upsert pronouns, could not build update column list")
 		}
 
 		conflict := conflictColumns
 		if len(conflict) == 0 {
-			conflict = make([]string, len(prefixPrimaryKeyColumns))
-			copy(conflict, prefixPrimaryKeyColumns)
+			conflict = make([]string, len(pronounPrimaryKeyColumns))
+			copy(conflict, pronounPrimaryKeyColumns)
 		}
-		cache.query = buildUpsertQueryPostgres(dialect, "\"prefixes\"", updateOnConflict, ret, update, conflict, insert)
+		cache.query = buildUpsertQueryPostgres(dialect, "\"pronouns\"", updateOnConflict, ret, update, conflict, insert)
 
-		cache.valueMapping, err = queries.BindMapping(prefixType, prefixMapping, insert)
+		cache.valueMapping, err = queries.BindMapping(pronounType, pronounMapping, insert)
 		if err != nil {
 			return err
 		}
 		if len(ret) != 0 {
-			cache.retMapping, err = queries.BindMapping(prefixType, prefixMapping, ret)
+			cache.retMapping, err = queries.BindMapping(pronounType, pronounMapping, ret)
 			if err != nil {
 				return err
 			}
@@ -692,27 +699,27 @@ func (o *Prefix) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOn
 		_, err = exec.ExecContext(ctx, cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert prefixes")
+		return errors.Wrap(err, "models: unable to upsert pronouns")
 	}
 
 	if !cached {
-		prefixUpsertCacheMut.Lock()
-		prefixUpsertCache[key] = cache
-		prefixUpsertCacheMut.Unlock()
+		pronounUpsertCacheMut.Lock()
+		pronounUpsertCache[key] = cache
+		pronounUpsertCacheMut.Unlock()
 	}
 
 	return nil
 }
 
-// Delete deletes a single Prefix record with an executor.
+// Delete deletes a single Pronoun record with an executor.
 // Delete will match against the primary key column to find the record to delete.
-func (o *Prefix) Delete(ctx context.Context, exec boil.ContextExecutor) error {
+func (o *Pronoun) Delete(ctx context.Context, exec boil.ContextExecutor) error {
 	if o == nil {
-		return errors.New("models: no Prefix provided for delete")
+		return errors.New("models: no Pronoun provided for delete")
 	}
 
-	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), prefixPrimaryKeyMapping)
-	sql := "DELETE FROM \"prefixes\" WHERE \"id\"=$1"
+	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), pronounPrimaryKeyMapping)
+	sql := "DELETE FROM \"pronouns\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -721,42 +728,42 @@ func (o *Prefix) Delete(ctx context.Context, exec boil.ContextExecutor) error {
 	}
 	_, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from prefixes")
+		return errors.Wrap(err, "models: unable to delete from pronouns")
 	}
 
 	return nil
 }
 
 // DeleteAll deletes all matching rows.
-func (q prefixQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) error {
+func (q pronounQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) error {
 	if q.Query == nil {
-		return errors.New("models: no prefixQuery provided for delete all")
+		return errors.New("models: no pronounQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from prefixes")
+		return errors.Wrap(err, "models: unable to delete all from pronouns")
 	}
 
 	return nil
 }
 
 // DeleteAll deletes all rows in the slice, using an executor.
-func (o PrefixSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) error {
+func (o PronounSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) error {
 	if len(o) == 0 {
 		return nil
 	}
 
 	var args []interface{}
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), prefixPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), pronounPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM \"prefixes\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, prefixPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"pronouns\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, pronounPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -765,7 +772,7 @@ func (o PrefixSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) e
 	}
 	_, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from prefix slice")
+		return errors.Wrap(err, "models: unable to delete all from pronoun slice")
 	}
 
 	return nil
@@ -773,8 +780,8 @@ func (o PrefixSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) e
 
 // Reload refetches the object from the database
 // using the primary keys with an executor.
-func (o *Prefix) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindPrefix(ctx, exec, o.ID)
+func (o *Pronoun) Reload(ctx context.Context, exec boil.ContextExecutor) error {
+	ret, err := FindPronoun(ctx, exec, o.ID)
 	if err != nil {
 		return err
 	}
@@ -785,26 +792,26 @@ func (o *Prefix) Reload(ctx context.Context, exec boil.ContextExecutor) error {
 
 // ReloadAll refetches every row with matching primary key column values
 // and overwrites the original object slice with the newly updated slice.
-func (o *PrefixSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
+func (o *PronounSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
 	if o == nil || len(*o) == 0 {
 		return nil
 	}
 
-	slice := PrefixSlice{}
+	slice := PronounSlice{}
 	var args []interface{}
 	for _, obj := range *o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), prefixPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), pronounPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT \"prefixes\".* FROM \"prefixes\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, prefixPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"pronouns\".* FROM \"pronouns\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, pronounPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
 	err := q.Bind(ctx, exec, &slice)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in PrefixSlice")
+		return errors.Wrap(err, "models: unable to reload all in PronounSlice")
 	}
 
 	*o = slice
@@ -812,10 +819,10 @@ func (o *PrefixSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) 
 	return nil
 }
 
-// PrefixExists checks if the Prefix row exists.
-func PrefixExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (bool, error) {
+// PronounExists checks if the Pronoun row exists.
+func PronounExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"prefixes\" where \"id\"=$1 limit 1)"
+	sql := "select exists(select 1 from \"pronouns\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -826,7 +833,7 @@ func PrefixExists(ctx context.Context, exec boil.ContextExecutor, iD int64) (boo
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if prefixes exists")
+		return false, errors.Wrap(err, "models: unable to check if pronouns exists")
 	}
 
 	return exists, nil

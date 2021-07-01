@@ -139,14 +139,17 @@ var GuildWhere = struct {
 
 // GuildRels is where relationship names are stored.
 var GuildRels = struct {
-	GuildSnowflakePrefix string
+	GuildSnowflakePrefixes string
+	GuildSnowflakePronouns string
 }{
-	GuildSnowflakePrefix: "GuildSnowflakePrefix",
+	GuildSnowflakePrefixes: "GuildSnowflakePrefixes",
+	GuildSnowflakePronouns: "GuildSnowflakePronouns",
 }
 
 // guildR is where relationships are stored.
 type guildR struct {
-	GuildSnowflakePrefix *Prefix `boil:"GuildSnowflakePrefix" json:"GuildSnowflakePrefix" toml:"GuildSnowflakePrefix" yaml:"GuildSnowflakePrefix"`
+	GuildSnowflakePrefixes PrefixSlice  `boil:"GuildSnowflakePrefixes" json:"GuildSnowflakePrefixes" toml:"GuildSnowflakePrefixes" yaml:"GuildSnowflakePrefixes"`
+	GuildSnowflakePronouns PronounSlice `boil:"GuildSnowflakePronouns" json:"GuildSnowflakePronouns" toml:"GuildSnowflakePronouns" yaml:"GuildSnowflakePronouns"`
 }
 
 // NewStruct creates a new relationship struct
@@ -255,23 +258,51 @@ func (q guildQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool
 	return count > 0, nil
 }
 
-// GuildSnowflakePrefix pointed to by the foreign key.
-func (o *Guild) GuildSnowflakePrefix(mods ...qm.QueryMod) prefixQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("\"guild_snowflake\" = ?", o.GuildSnowflake),
+// GuildSnowflakePrefixes retrieves all the prefix's Prefixes with an executor via guild_snowflake column.
+func (o *Guild) GuildSnowflakePrefixes(mods ...qm.QueryMod) prefixQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
 	}
 
-	queryMods = append(queryMods, mods...)
+	queryMods = append(queryMods,
+		qm.Where("\"prefixes\".\"guild_snowflake\"=?", o.GuildSnowflake),
+	)
 
 	query := Prefixes(queryMods...)
 	queries.SetFrom(query.Query, "\"prefixes\"")
 
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"prefixes\".*"})
+	}
+
 	return query
 }
 
-// LoadGuildSnowflakePrefix allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-1 relationship.
-func (guildL) LoadGuildSnowflakePrefix(ctx context.Context, e boil.ContextExecutor, singular bool, maybeGuild interface{}, mods queries.Applicator) error {
+// GuildSnowflakePronouns retrieves all the pronoun's Pronouns with an executor via guild_snowflake column.
+func (o *Guild) GuildSnowflakePronouns(mods ...qm.QueryMod) pronounQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"pronouns\".\"guild_snowflake\"=?", o.GuildSnowflake),
+	)
+
+	query := Pronouns(queryMods...)
+	queries.SetFrom(query.Query, "\"pronouns\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"pronouns\".*"})
+	}
+
+	return query
+}
+
+// LoadGuildSnowflakePrefixes allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (guildL) LoadGuildSnowflakePrefixes(ctx context.Context, e boil.ContextExecutor, singular bool, maybeGuild interface{}, mods queries.Applicator) error {
 	var slice []*Guild
 	var object *Guild
 
@@ -318,38 +349,36 @@ func (guildL) LoadGuildSnowflakePrefix(ctx context.Context, e boil.ContextExecut
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load Prefix")
+		return errors.Wrap(err, "failed to eager load prefixes")
 	}
 
 	var resultSlice []*Prefix
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Prefix")
+		return errors.Wrap(err, "failed to bind eager loaded slice prefixes")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for prefixes")
+		return errors.Wrap(err, "failed to close results in eager load on prefixes")
 	}
 	if err = results.Err(); err != nil {
 		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for prefixes")
 	}
 
-	if len(resultSlice) == 0 {
+	if singular {
+		object.R.GuildSnowflakePrefixes = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &prefixR{}
+			}
+			foreign.R.GuildSnowflakeGuild = object
+		}
 		return nil
 	}
 
-	if singular {
-		foreign := resultSlice[0]
-		object.R.GuildSnowflakePrefix = foreign
-		if foreign.R == nil {
-			foreign.R = &prefixR{}
-		}
-		foreign.R.GuildSnowflakeGuild = object
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
 			if local.GuildSnowflake == foreign.GuildSnowflake {
-				local.R.GuildSnowflakePrefix = foreign
+				local.R.GuildSnowflakePrefixes = append(local.R.GuildSnowflakePrefixes, foreign)
 				if foreign.R == nil {
 					foreign.R = &prefixR{}
 				}
@@ -362,53 +391,199 @@ func (guildL) LoadGuildSnowflakePrefix(ctx context.Context, e boil.ContextExecut
 	return nil
 }
 
-// SetGuildSnowflakePrefix of the guild to the related item.
-// Sets o.R.GuildSnowflakePrefix to related.
-// Adds o to related.R.GuildSnowflakeGuild.
-func (o *Guild) SetGuildSnowflakePrefix(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Prefix) error {
-	var err error
+// LoadGuildSnowflakePronouns allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (guildL) LoadGuildSnowflakePronouns(ctx context.Context, e boil.ContextExecutor, singular bool, maybeGuild interface{}, mods queries.Applicator) error {
+	var slice []*Guild
+	var object *Guild
 
-	if insert {
-		related.GuildSnowflake = o.GuildSnowflake
-
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
+	if singular {
+		object = maybeGuild.(*Guild)
 	} else {
-		updateQuery := fmt.Sprintf(
-			"UPDATE \"prefixes\" SET %s WHERE %s",
-			strmangle.SetParamNames("\"", "\"", 1, []string{"guild_snowflake"}),
-			strmangle.WhereClause("\"", "\"", 2, prefixPrimaryKeyColumns),
-		)
-		values := []interface{}{o.GuildSnowflake, related.ID}
+		slice = *maybeGuild.(*[]*Guild)
+	}
 
-		if boil.IsDebug(ctx) {
-			writer := boil.DebugWriterFrom(ctx)
-			fmt.Fprintln(writer, updateQuery)
-			fmt.Fprintln(writer, values)
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &guildR{}
 		}
-		if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-			return errors.Wrap(err, "failed to update foreign table")
+		args = append(args, object.GuildSnowflake)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &guildR{}
+			}
+
+			for _, a := range args {
+				if a == obj.GuildSnowflake {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.GuildSnowflake)
 		}
+	}
 
-		related.GuildSnowflake = o.GuildSnowflake
+	if len(args) == 0 {
+		return nil
+	}
 
+	query := NewQuery(
+		qm.From(`pronouns`),
+		qm.WhereIn(`pronouns.guild_snowflake in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load pronouns")
+	}
+
+	var resultSlice []*Pronoun
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice pronouns")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on pronouns")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for pronouns")
+	}
+
+	if singular {
+		object.R.GuildSnowflakePronouns = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &pronounR{}
+			}
+			foreign.R.GuildSnowflakeGuild = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.GuildSnowflake == foreign.GuildSnowflake {
+				local.R.GuildSnowflakePronouns = append(local.R.GuildSnowflakePronouns, foreign)
+				if foreign.R == nil {
+					foreign.R = &pronounR{}
+				}
+				foreign.R.GuildSnowflakeGuild = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// AddGuildSnowflakePrefixes adds the given related objects to the existing relationships
+// of the guild, optionally inserting them as new records.
+// Appends related to o.R.GuildSnowflakePrefixes.
+// Sets related.R.GuildSnowflakeGuild appropriately.
+func (o *Guild) AddGuildSnowflakePrefixes(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Prefix) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.GuildSnowflake = o.GuildSnowflake
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"prefixes\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"guild_snowflake"}),
+				strmangle.WhereClause("\"", "\"", 2, prefixPrimaryKeyColumns),
+			)
+			values := []interface{}{o.GuildSnowflake, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.GuildSnowflake = o.GuildSnowflake
+		}
 	}
 
 	if o.R == nil {
 		o.R = &guildR{
-			GuildSnowflakePrefix: related,
+			GuildSnowflakePrefixes: related,
 		}
 	} else {
-		o.R.GuildSnowflakePrefix = related
+		o.R.GuildSnowflakePrefixes = append(o.R.GuildSnowflakePrefixes, related...)
 	}
 
-	if related.R == nil {
-		related.R = &prefixR{
-			GuildSnowflakeGuild: o,
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &prefixR{
+				GuildSnowflakeGuild: o,
+			}
+		} else {
+			rel.R.GuildSnowflakeGuild = o
+		}
+	}
+	return nil
+}
+
+// AddGuildSnowflakePronouns adds the given related objects to the existing relationships
+// of the guild, optionally inserting them as new records.
+// Appends related to o.R.GuildSnowflakePronouns.
+// Sets related.R.GuildSnowflakeGuild appropriately.
+func (o *Guild) AddGuildSnowflakePronouns(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Pronoun) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.GuildSnowflake = o.GuildSnowflake
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"pronouns\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"guild_snowflake"}),
+				strmangle.WhereClause("\"", "\"", 2, pronounPrimaryKeyColumns),
+			)
+			values := []interface{}{o.GuildSnowflake, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.GuildSnowflake = o.GuildSnowflake
+		}
+	}
+
+	if o.R == nil {
+		o.R = &guildR{
+			GuildSnowflakePronouns: related,
 		}
 	} else {
-		related.R.GuildSnowflakeGuild = o
+		o.R.GuildSnowflakePronouns = append(o.R.GuildSnowflakePronouns, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &pronounR{
+				GuildSnowflakeGuild: o,
+			}
+		} else {
+			rel.R.GuildSnowflakeGuild = o
+		}
 	}
 	return nil
 }
