@@ -6,14 +6,9 @@ var defaultMessageCommands map[string]*MessageCommand
 
 func init() {
 	defaultMessageCommands = map[string]*MessageCommand{
-		"test": cmdTest,
-		"flag": cmdFlag,
-
-		"addprefix":    cmdAddPrefix,
-		"removeprefix": cmdRemovePrefix,
-		"delprefix":    cmdRemovePrefix,
-		"listprefix":   cmdListPrefix,
-		"listprefixes": cmdListPrefix,
+		"test":   cmdTest,
+		"flag":   cmdFlag,
+		"prefix": cmdPrefix,
 	}
 }
 

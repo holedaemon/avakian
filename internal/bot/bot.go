@@ -122,14 +122,35 @@ func (b *Bot) FetchMember(ctx context.Context, mid, gid string) (*discord.GuildM
 	return m, nil
 }
 
+func (b *Bot) FetchMemberPermissions(ctx context.Context, gid, cid, mid string) (int, error) {
+	gd, err := b.FetchGuild(ctx, gid)
+	if err != nil {
+		return 0, err
+	}
+
+	ch, err := b.FetchChannel(ctx, cid)
+	if err != nil {
+		return 0, err
+	}
+
+	mb, err := b.FetchMember(ctx, mid, gid)
+	if err != nil {
+		return 0, err
+	}
+
+	return mb.PermissionsIn(gd, ch), nil
+}
+
 func (b *Bot) MessageSession(msg *discord.Message) *MessageSession {
 	argv := strings.Split(msg.Content, " ")
+	prefix := argv[0][:1]
 
 	return &MessageSession{
-		Msg:  msg,
-		Bot:  b,
-		Argv: argv,
-		Args: argv[1:],
+		Msg:    msg,
+		Bot:    b,
+		Argv:   argv,
+		Args:   argv[1:],
+		Prefix: prefix,
 	}
 }
 

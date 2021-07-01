@@ -35,3 +35,7 @@ func Must(debug bool) *zap.Logger {
 func Guild(id string) zap.Field {
 	return zap.String("guild", id)
 }
+
+func Member(id string) zap.Field {
+	return zap.String("member", id)
+}

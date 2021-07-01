@@ -11,3 +11,28 @@ func stringInSlice(want string, sl []string) bool {
 
 	return false
 }
+
+func buildUsage(prefix, command string, commands interface{}) string {
+	switch commands := commands.(type) {
+	case map[string]*MessageCommand:
+		var sb strings.Builder
+
+		sb.WriteString(prefix + command + " <")
+
+		i := 1
+		for k := range commands {
+			if i == len(commands) {
+				sb.WriteString(k + ">")
+				break
+			}
+
+			sb.WriteString(k + "|")
+
+			i++
+		}
+
+		return sb.String()
+	default:
+		panic("invalid type passed to buildUsage()")
+	}
+}

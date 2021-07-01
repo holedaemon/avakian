@@ -13,10 +13,11 @@ type MessageSession struct {
 	// Entire message
 	Argv []string
 	// Without command trigger
-	Args []string
-	Bot  *Bot
+	Args   []string
+	Prefix string
 
-	Tx *sql.Tx
+	Bot *Bot
+	Tx  *sql.Tx
 }
 
 func (ms *MessageSession) Reply(ctx context.Context, msg string) error {

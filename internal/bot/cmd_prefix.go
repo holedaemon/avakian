@@ -18,21 +18,64 @@ import (
 const guildMaxPrefix = 5
 
 var (
-	cmdAddPrefix = &MessageCommand{
-		permissions: discord.PermissionManageGuild,
-		fn:          cmdAddPrefixFn,
+	cmdPrefix = &MessageCommand{
+		permissions: discord.PermissionSendMessages,
+		fn:          cmdPrefixFn,
 	}
 
-	cmdRemovePrefix = &MessageCommand{
+	cmdDeletePrefix = &MessageCommand{
 		permissions: discord.PermissionManageGuild,
 		fn:          cmdRemovePrefixFn,
 	}
 
-	cmdListPrefix = &MessageCommand{
-		permissions: discord.PermissionSendMessages,
-		fn:          cmdListPrefixFn,
+	prefixCommands = map[string]*MessageCommand{
+		"add": {
+			permissions: discord.PermissionManageGuild,
+			fn:          cmdAddPrefixFn,
+		},
+		"list": {
+			permissions: discord.PermissionSendMessages,
+			fn:          cmdListPrefixFn,
+		},
+		"remove": cmdDeletePrefix,
+		"delete": cmdDeletePrefix,
 	}
 )
+
+func cmdPrefixFn(ctx context.Context, s *MessageSession) error {
+	usage := func() error {
+		return s.Replyf(ctx, "Usage: `%s`", buildUsage(s.Prefix, "prefix", prefixCommands))
+	}
+
+	if len(s.Args) == 0 {
+		return usage()
+	}
+
+	subSess := *s
+	subSess.Args = s.Args[1:]
+	sub := s.Args[0]
+
+	cmd := prefixCommands[sub]
+	if cmd == nil {
+		return usage()
+	}
+
+	p, err := s.Bot.FetchMemberPermissions(ctx, s.Msg.GuildID, s.Msg.ChannelID, s.Msg.Author.ID)
+	if err != nil {
+		return err
+	}
+
+	if !cmd.HasPermission(p) {
+		ctxlog.Debug(ctx, "member lacks permission to run command", zapx.Member(s.Msg.Author.ID))
+		return nil
+	}
+
+	if err := cmd.Execute(ctx, &subSess); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func cmdAddPrefixFn(ctx context.Context, s *MessageSession) error {
 	if len(s.Args) == 0 {
@@ -121,12 +164,11 @@ func cmdListPrefixFn(ctx context.Context, s *MessageSession) error {
 
 	prefixes, err := models.Prefixes(qm.Where("guild_snowflake = ?", s.Msg.GuildID)).All(ctx, s.Tx)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			ctxlog.Debug(ctx, "guild has no prefixes")
-			return s.Reply(ctx, "Guild hasn't added any prefixes")
-		}
-
 		return err
+	}
+
+	if len(prefixes) == 0 {
+		return s.Reply(ctx, "Guild hasn't added any prefixes")
 	}
 
 	for _, p := range prefixes {
