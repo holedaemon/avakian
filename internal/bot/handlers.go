@@ -109,7 +109,7 @@ func (b *Bot) handleMessage(m *discord.Message) {
 		return
 	}
 
-	tx, err := b.DB.BeginTx(ctx, &sql.TxOptions{})
+	tx, err := b.DB.BeginTx(ctx, nil)
 	if err != nil {
 		ctxlog.Error(ctx, "error beginning db transaction", zap.Error(err))
 		return
