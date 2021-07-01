@@ -1,6 +1,7 @@
 BEGIN;
 
 DROP TABLE IF EXISTS guilds,
-    prefixes;
+    prefixes,
+    pronouns;
 
 COMMIT;
