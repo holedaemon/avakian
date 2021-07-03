@@ -172,3 +172,45 @@ func (b *Bot) GuildPrefixes(ctx context.Context, id string) ([]string, error) {
 
 	return prefs, nil
 }
+
+func (b *Bot) AddRole(ctx context.Context, gid, mid, rid, reason string) error {
+	g := b.Client.Guild(gid)
+
+	if reason == "" {
+		return g.AddMemberRole(ctx, mid, rid)
+	}
+
+	return g.AddMemberRoleWithReason(ctx, mid, rid, reason)
+}
+
+func (b *Bot) RemoveRole(ctx context.Context, gid, mid, rid, reason string) error {
+	g := b.Client.Guild(gid)
+
+	if reason == "" {
+		return g.RemoveMemberRole(ctx, mid, rid)
+	}
+
+	return g.RemoveMemberRoleWithReason(ctx, mid, rid, reason)
+}
+
+func (b *Bot) CreateRole(ctx context.Context, gid, reason string, settings ...discord.RoleSetting) (*discord.Role, error) {
+	g := b.Client.Guild(gid)
+
+	roleSettings := discord.NewRoleSettings(settings...)
+
+	if reason == "" {
+		return g.NewRole(ctx, roleSettings)
+	}
+
+	return g.NewRoleWithReason(ctx, roleSettings, reason)
+}
+
+func (b *Bot) DeleteRole(ctx context.Context, gid, rid, reason string) error {
+	g := b.Client.Guild(gid)
+
+	if reason == "" {
+		return g.DeleteRole(ctx, rid)
+	}
+
+	return g.DeleteRoleWithReason(ctx, rid, reason)
+}
