@@ -7,7 +7,7 @@ services:
         container_name: avakian
         depends_on: 
             - pg
-        env_file: prod-test.env
+        env_file: .env
         restart: unless-stopped
         networks:
             - avakian
