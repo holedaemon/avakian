@@ -66,7 +66,7 @@ func (b *Bot) defaults() error {
 	}
 
 	if b.Twitter == nil {
-		fmt.Fprintln(os.Stderr, "[WARN] no twitter client was passed, thus twitter features will not work")
+		fmt.Fprintln(os.Stderr, "[WARN] no twitter client was passed, therefore twitter features will not work")
 	}
 
 	if b.Logger == nil {
