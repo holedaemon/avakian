@@ -2,7 +2,10 @@ package bot
 
 import "context"
 
-var defaultMessageCommands map[string]*MessageCommand
+var (
+	defaultMessageCommands map[string]*MessageCommand
+	defaultRegexCommands   []*RegexCommand
+)
 
 func init() {
 	defaultMessageCommands = map[string]*MessageCommand{
@@ -10,6 +13,10 @@ func init() {
 		"flag":     cmdFlag,
 		"prefix":   cmdPrefix,
 		"pronouns": cmdPronouns,
+	}
+
+	defaultRegexCommands = []*RegexCommand{
+		regTwitter,
 	}
 }
 

@@ -67,6 +67,13 @@ func (b *Bot) handleMessage(m *discord.Message) {
 
 	ctxlog.Debug(ctx, "received message", zap.String("content", m.Content))
 
+	rs := b.RegexSession(m)
+	for _, r := range defaultRegexCommands {
+		if err := r.Execute(ctx, rs); err != nil {
+			ctxlog.Error(ctx, "error running regex command", zap.Error(err))
+		}
+	}
+
 	prefs, err := b.GuildPrefixes(ctx, m.GuildID)
 	if err != nil {
 		ctxlog.Error(ctx, "error getting guild prefixes, reverting to default", zap.Error(err))

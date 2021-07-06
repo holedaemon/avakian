@@ -6,8 +6,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
+	"github.com/dghubble/go-twitter/twitter"
 	"github.com/erei/avakian/internal/database/models"
 	"github.com/erei/avakian/internal/pkg/zapx"
 	"github.com/skwair/harmony"
@@ -28,9 +30,10 @@ type Bot struct {
 	Debug         bool
 	DefaultPrefix string
 
-	DB     *sql.DB
-	Logger *zap.Logger
-	Client *harmony.Client
+	Twitter *twitter.Client
+	DB      *sql.DB
+	Logger  *zap.Logger
+	Client  *harmony.Client
 }
 
 func NewBot(opts ...Option) (*Bot, error) {
@@ -60,6 +63,10 @@ func (b *Bot) defaults() error {
 
 	if b.DB == nil {
 		return fmt.Errorf("%w: *sql.DB", ErrClientOption)
+	}
+
+	if b.Twitter == nil {
+		fmt.Fprintln(os.Stderr, "[WARN] no twitter client was passed, thus twitter features will not work")
 	}
 
 	if b.Logger == nil {
@@ -151,6 +158,13 @@ func (b *Bot) MessageSession(msg *discord.Message) *MessageSession {
 		Argv:   argv,
 		Args:   argv[1:],
 		Prefix: prefix,
+	}
+}
+
+func (b *Bot) RegexSession(msg *discord.Message) *RegexSession {
+	return &RegexSession{
+		Msg: msg,
+		Bot: b,
 	}
 }
 

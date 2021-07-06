@@ -3,6 +3,7 @@ package bot
 import (
 	"database/sql"
 
+	"github.com/dghubble/go-twitter/twitter"
 	"github.com/skwair/harmony"
 	"go.uber.org/zap"
 )
@@ -36,5 +37,11 @@ func WithClient(c *harmony.Client) Option {
 func WithDebug(d bool) Option {
 	return func(b *Bot) {
 		b.Debug = d
+	}
+}
+
+func WithTwitter(t *twitter.Client) Option {
+	return func(b *Bot) {
+		b.Twitter = t
 	}
 }
