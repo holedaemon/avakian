@@ -67,6 +67,16 @@ func (b *Bot) handleMessage(m *discord.Message) {
 
 	ctxlog.Debug(ctx, "received message", zap.String("content", m.Content))
 
+	ch, err := b.FetchChannel(ctx, m.ChannelID)
+	if err != nil {
+		ctxlog.Error(ctx, "error fetching channel", zap.Error(err))
+		return
+	}
+
+	if ch.Type != discord.ChannelTypeGuildText {
+		return
+	}
+
 	rs := b.RegexSession(m)
 	for _, r := range defaultRegexCommands {
 		if err := r.Execute(ctx, rs); err != nil {
@@ -89,12 +99,6 @@ func (b *Bot) handleMessage(m *discord.Message) {
 
 	com, ok := defaultMessageCommands[cmd]
 	if !ok {
-		return
-	}
-
-	ch, err := b.FetchChannel(ctx, m.ChannelID)
-	if err != nil {
-		ctxlog.Error(ctx, "error fetching channel", zap.Error(err))
 		return
 	}
 
