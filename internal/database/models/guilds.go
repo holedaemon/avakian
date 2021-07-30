@@ -23,37 +23,42 @@ import (
 
 // Guild is an object representing the database table.
 type Guild struct {
-	ID             int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
-	GuildSnowflake string    `boil:"guild_snowflake" json:"guild_snowflake" toml:"guild_snowflake" yaml:"guild_snowflake"`
-	CreatedAt      time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt      time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID                 int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	GuildSnowflake     string    `boil:"guild_snowflake" json:"guild_snowflake" toml:"guild_snowflake" yaml:"guild_snowflake"`
+	CreatedAt          time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt          time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	EmbedTwitterVideos bool      `boil:"embed_twitter_videos" json:"embed_twitter_videos" toml:"embed_twitter_videos" yaml:"embed_twitter_videos"`
 
 	R *guildR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L guildL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var GuildColumns = struct {
-	ID             string
-	GuildSnowflake string
-	CreatedAt      string
-	UpdatedAt      string
+	ID                 string
+	GuildSnowflake     string
+	CreatedAt          string
+	UpdatedAt          string
+	EmbedTwitterVideos string
 }{
-	ID:             "id",
-	GuildSnowflake: "guild_snowflake",
-	CreatedAt:      "created_at",
-	UpdatedAt:      "updated_at",
+	ID:                 "id",
+	GuildSnowflake:     "guild_snowflake",
+	CreatedAt:          "created_at",
+	UpdatedAt:          "updated_at",
+	EmbedTwitterVideos: "embed_twitter_videos",
 }
 
 var GuildTableColumns = struct {
-	ID             string
-	GuildSnowflake string
-	CreatedAt      string
-	UpdatedAt      string
+	ID                 string
+	GuildSnowflake     string
+	CreatedAt          string
+	UpdatedAt          string
+	EmbedTwitterVideos string
 }{
-	ID:             "guilds.id",
-	GuildSnowflake: "guilds.guild_snowflake",
-	CreatedAt:      "guilds.created_at",
-	UpdatedAt:      "guilds.updated_at",
+	ID:                 "guilds.id",
+	GuildSnowflake:     "guilds.guild_snowflake",
+	CreatedAt:          "guilds.created_at",
+	UpdatedAt:          "guilds.updated_at",
+	EmbedTwitterVideos: "guilds.embed_twitter_videos",
 }
 
 // Generated where
@@ -125,16 +130,27 @@ func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
 
+type whereHelperbool struct{ field string }
+
+func (w whereHelperbool) EQ(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperbool) NEQ(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperbool) LT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperbool) LTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+
 var GuildWhere = struct {
-	ID             whereHelperint64
-	GuildSnowflake whereHelperstring
-	CreatedAt      whereHelpertime_Time
-	UpdatedAt      whereHelpertime_Time
+	ID                 whereHelperint64
+	GuildSnowflake     whereHelperstring
+	CreatedAt          whereHelpertime_Time
+	UpdatedAt          whereHelpertime_Time
+	EmbedTwitterVideos whereHelperbool
 }{
-	ID:             whereHelperint64{field: "\"guilds\".\"id\""},
-	GuildSnowflake: whereHelperstring{field: "\"guilds\".\"guild_snowflake\""},
-	CreatedAt:      whereHelpertime_Time{field: "\"guilds\".\"created_at\""},
-	UpdatedAt:      whereHelpertime_Time{field: "\"guilds\".\"updated_at\""},
+	ID:                 whereHelperint64{field: "\"guilds\".\"id\""},
+	GuildSnowflake:     whereHelperstring{field: "\"guilds\".\"guild_snowflake\""},
+	CreatedAt:          whereHelpertime_Time{field: "\"guilds\".\"created_at\""},
+	UpdatedAt:          whereHelpertime_Time{field: "\"guilds\".\"updated_at\""},
+	EmbedTwitterVideos: whereHelperbool{field: "\"guilds\".\"embed_twitter_videos\""},
 }
 
 // GuildRels is where relationship names are stored.
@@ -161,9 +177,9 @@ func (*guildR) NewStruct() *guildR {
 type guildL struct{}
 
 var (
-	guildAllColumns            = []string{"id", "guild_snowflake", "created_at", "updated_at"}
+	guildAllColumns            = []string{"id", "guild_snowflake", "created_at", "updated_at", "embed_twitter_videos"}
 	guildColumnsWithoutDefault = []string{"guild_snowflake"}
-	guildColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
+	guildColumnsWithDefault    = []string{"id", "created_at", "updated_at", "embed_twitter_videos"}
 	guildPrimaryKeyColumns     = []string{"id"}
 )
 
