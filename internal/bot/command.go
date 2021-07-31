@@ -13,6 +13,7 @@ func init() {
 		"flag":     cmdFlag,
 		"prefix":   cmdPrefix,
 		"pronouns": cmdPronouns,
+		"guildctl": cmdGuildctl,
 	}
 
 	defaultRegexCommands = []*RegexCommand{
