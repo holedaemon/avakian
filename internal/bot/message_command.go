@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/erei/avakian/internal/database/models"
 	"github.com/skwair/harmony/discord"
 )
 
@@ -18,6 +19,10 @@ type MessageSession struct {
 
 	Bot *Bot
 	Tx  *sql.Tx
+}
+
+func (ms *MessageSession) QueryGuild(ctx context.Context) (*models.Guild, error) {
+	return ms.Bot.QueryGuild(ctx, ms.Msg.GuildID)
 }
 
 func (ms *MessageSession) Reply(ctx context.Context, msg string) error {

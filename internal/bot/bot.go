@@ -88,6 +88,10 @@ func (b *Bot) Disconnect() {
 	b.Client.Disconnect()
 }
 
+func (b *Bot) QueryGuild(ctx context.Context, sf string) (*models.Guild, error) {
+	return models.Guilds(qm.Where("guild_snowflake = ?", sf)).One(ctx, b.DB)
+}
+
 func (b *Bot) FetchGuild(ctx context.Context, id string) (*discord.Guild, error) {
 	sg := b.Client.State.Guild(id)
 	if sg != nil {

@@ -1,6 +1,10 @@
 package bot
 
-import "context"
+import (
+	"context"
+
+	"github.com/erei/avakian/internal/database/models"
+)
 
 var (
 	defaultMessageCommands map[string]*MessageCommand
@@ -23,6 +27,7 @@ func init() {
 
 type Session interface {
 	Reply(context.Context, string) error
+	QueryGuild(context.Context) (*models.Guild, error)
 }
 
 type Command interface {

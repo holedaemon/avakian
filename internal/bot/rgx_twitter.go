@@ -52,6 +52,16 @@ func regTwitterFn(ctx context.Context, s *RegexSession) error {
 		return nil
 	}
 
+	g, err := s.QueryGuild(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !g.EmbedTwitterVideos {
+		ctxlog.Debug(ctx, "embed_twitter_videos set to false in db")
+		return nil
+	}
+
 	tweet, res, err := s.Bot.Twitter.Statuses.Show(i, &twitter.StatusShowParams{
 		IncludeEntities: twitter.Bool(true),
 	})

@@ -6,9 +6,11 @@ import (
 
 	"github.com/erei/avakian/internal/database/models"
 	"github.com/erei/avakian/internal/pkg/modelsx"
+	"github.com/erei/avakian/internal/pkg/snowflake"
 	"github.com/erei/avakian/internal/pkg/zapx"
 	"github.com/skwair/harmony/discord"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/zikaeroh/ctxlog"
 )
 
@@ -102,7 +104,7 @@ func cmdPronounsAdd(ctx context.Context, s *MessageSession) error {
 	}
 
 	if dp == nil {
-		return s.Reply(ctx, "Those pronouns haven't been added to this guild")
+		return s.Reply(ctx, "The requested pronoun role do not exist on this guild")
 	}
 
 	if err := s.Bot.AddRole(ctx, s.Msg.GuildID, s.Msg.Author.ID, dp.RoleSnowflake, "Automated; pronoun role requested"); err != nil {
@@ -124,7 +126,7 @@ func cmdPronounsRemove(ctx context.Context, s *MessageSession) error {
 	}
 
 	if dp == nil {
-		return s.Reply(ctx, "Those pronouns haven't been added to this guild")
+		return s.Reply(ctx, "The requested pronoun role does not exist on this guild")
 	}
 
 	if err := s.Bot.RemoveRole(ctx, s.Msg.GuildID, s.Msg.Author.ID, dp.RoleSnowflake, "Automated; pronoun removal requested"); err != nil {
@@ -146,7 +148,7 @@ func cmdPronounsCreate(ctx context.Context, s *MessageSession) error {
 	}
 
 	if exists {
-		return s.Reply(ctx, "Those pronouns have already been created")
+		return s.Reply(ctx, "The given pronouns already have a role on this server")
 	}
 
 	role, err := s.Bot.CreateRole(ctx, s.Msg.GuildID, "Automated; creation of pronoun role", discord.WithRoleName(prn))
@@ -164,7 +166,7 @@ func cmdPronounsCreate(ctx context.Context, s *MessageSession) error {
 		return err
 	}
 
-	return s.Reply(ctx, "Pronouns added to guild")
+	return s.Reply(ctx, "Pronoun role has been created")
 }
 
 func cmdPronounsDelete(ctx context.Context, s *MessageSession) error {
@@ -179,14 +181,14 @@ func cmdPronounsDelete(ctx context.Context, s *MessageSession) error {
 	}
 
 	if !deleted {
-		return s.Reply(ctx, "Those pronouns don't exist on this guild")
+		return s.Reply(ctx, "The requested pronoun role does not exist on this guild")
 	}
 
 	if err := s.Bot.DeleteRole(ctx, s.Msg.GuildID, id, "Automated; pronoun removal requested"); err != nil {
 		return err
 	}
 
-	return s.Reply(ctx, "Pronouns removed from guild")
+	return s.Reply(ctx, "Deleted pronoun role from guild")
 }
 
 func cmdPronounsList(ctx context.Context, s *MessageSession) error {
@@ -196,7 +198,7 @@ func cmdPronounsList(ctx context.Context, s *MessageSession) error {
 	}
 
 	if len(list) == 0 {
-		return s.Reply(ctx, "No pronouns have been added to this guild")
+		return s.Reply(ctx, "I'm not managing any pronoun roles for this guild")
 	}
 
 	var sb strings.Builder
@@ -218,34 +220,35 @@ func cmdPronounsInit(ctx context.Context, s *MessageSession) error {
 		return err
 	}
 
-	needed := make(map[string]bool)
+	needed := make(map[string]string)
 	for _, dp := range defaultPronouns {
-		needed[dp] = true
-	}
-
-	for _, r := range g.Roles {
-		_, ok := needed[r.Name]
-		if ok {
-			needed[r.Name] = false
-		}
+		needed[strings.ToLower(dp)] = ""
 	}
 
 	var sb strings.Builder
 	errors := 0
 	created := 0
+	imported := 0
 	fmtError := func(name, kind string, err error) {
 		if sb.Len() == 0 {
 			sb.WriteString("Errors encountered during initialization:\n```")
 		}
 
-		sb.WriteString(name + "(" + kind + "):\t" + err.Error())
+		sb.WriteString(name + "(" + kind + "):\t" + err.Error() + "\n")
 		errors++
+	}
+
+	for _, r := range g.Roles {
+		_, ok := needed[strings.ToLower(r.Name)]
+		if ok {
+			needed[strings.ToLower(r.Name)] = r.ID
+		}
 	}
 
 	for key, val := range needed {
 		key = strings.ToLower(key)
 
-		if val {
+		if val == "" {
 			r, err := s.Bot.CreateRole(ctx, s.Msg.GuildID, "Initializing pronoun roles...", discord.WithRoleName(key))
 			if err != nil {
 				fmtError(key, "api", err)
@@ -264,6 +267,33 @@ func cmdPronounsInit(ctx context.Context, s *MessageSession) error {
 			}
 
 			created++
+		} else {
+			if !snowflake.Valid(val) {
+				continue
+			}
+
+			exists, err := models.Pronouns(qm.Where("role_snowflake = ?", val), qm.Where("guild_snowflake = ?", s.Msg.GuildID)).Exists(ctx, s.Tx)
+			if err != nil {
+				fmtError(key, "db", err)
+				continue
+			}
+
+			if exists {
+				continue
+			}
+
+			prn := &models.Pronoun{
+				GuildSnowflake: s.Msg.GuildID,
+				Pronoun:        key,
+				RoleSnowflake:  val,
+			}
+
+			if err := prn.Insert(ctx, s.Tx, boil.Infer()); err != nil {
+				fmtError(key, "db", err)
+				continue
+			}
+
+			imported++
 		}
 	}
 
@@ -273,8 +303,12 @@ func cmdPronounsInit(ctx context.Context, s *MessageSession) error {
 	}
 
 	if created == 0 {
-		return s.Reply(ctx, "0 pronouns initialized as they already existed")
+		if imported > 0 {
+			return s.Replyf(ctx, "0 pronoun roles were created, but %d existing pronoun roles were imported into the database", imported)
+		}
+
+		return s.Reply(ctx, "No change was made as every default pronoun already has an associated database entry & role")
 	}
 
-	return s.Reply(ctx, "Pronouns initialized successfully")
+	return s.Reply(ctx, "Pronoun roles initialized successfully")
 }

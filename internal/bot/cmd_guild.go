@@ -4,8 +4,10 @@ import (
 	"context"
 	"strings"
 
+	"github.com/erei/avakian/internal/database/models"
 	"github.com/skwair/harmony/discord"
-	"github.com/volatiletech/sqlboiler/v4/queries"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 var (
@@ -23,17 +25,11 @@ var (
 		fn:          cmdGuildctlOffFn,
 		permissions: discord.PermissionManageGuild,
 	}
-
-	cmdGuildctlToggle = &MessageCommand{
-		fn:          cmdGuildctlToggleFn,
-		permissions: discord.PermissionManageGuild,
-	}
 )
 
 var guildctlCommands = map[string]*MessageCommand{
-	"on":     cmdGuildctlOn,
-	"off":    cmdGuildctlOff,
-	"toggle": cmdGuildctlToggle,
+	"on":  cmdGuildctlOn,
+	"off": cmdGuildctlOff,
 }
 
 func cmdGuildctlFn(ctx context.Context, s *MessageSession) error {
@@ -77,43 +73,22 @@ var settingsMap = map[string]string{
 	"tv":            "embed_twitter_videos",
 }
 
-func toggleSetting(ctx context.Context, s *MessageSession, setting string, val *bool) (bool, bool, error) {
-	if settingsMap[setting] == "" {
-		return false, false, nil
-	}
-
-	if val == nil {
-		var row struct {
-			Setting bool
-		}
-
-		query := queries.Raw(
-			"UPDATE guilds SET $1 = !$1 AND updated_at = NOW() WHERE guild_snowflake = $2 RETURNING $1 AS setting;",
-			setting,
-			s.Msg.GuildID,
-		)
-
-		if err := query.Bind(ctx, s.Tx, &row); err != nil {
-			return false, false, err
-		}
-
-		return true, row.Setting, nil
-	}
-
-	query := queries.Raw(
-		"UPDATE guilds SET $1 = $2 AND updated_at = NOW() WHERE guild_snowflake = $3;",
-		setting,
-		*val,
-		s.Msg.GuildID,
-	)
-
-	_, err := query.ExecContext(ctx, s.Tx)
-
+func toggleSetting(ctx context.Context, s *MessageSession, setting string, val bool) (bool, error) {
+	guild, err := models.Guilds(qm.Where("guild_snowflake = ?", s.Msg.GuildID)).One(ctx, s.Tx)
 	if err != nil {
-		return false, false, err
+		return false, err
 	}
 
-	return true, false, nil
+	switch setting {
+	case "embed_twitter_videos":
+		guild.EmbedTwitterVideos = val
+	}
+
+	if err := guild.Update(ctx, s.Tx, boil.Infer()); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func cmdGuildctlOnFn(ctx context.Context, s *MessageSession) error {
@@ -124,9 +99,8 @@ func cmdGuildctlOnFn(ctx context.Context, s *MessageSession) error {
 		return s.Replyf(ctx, "Unknown setting \"%s\"", arg)
 	}
 
-	var val *bool
-	*val = true
-	updated, _, err := toggleSetting(ctx, s, proc, val)
+	val := true
+	updated, err := toggleSetting(ctx, s, proc, val)
 	if err != nil {
 		return err
 	}
@@ -136,7 +110,7 @@ func cmdGuildctlOnFn(ctx context.Context, s *MessageSession) error {
 		return s.Reply(ctx, "Unable to update guild setting")
 	}
 
-	return s.Replyf(ctx, "Guild setting \"%s\" has been turned on", arg)
+	return s.Replyf(ctx, "Guild setting \"%s\" has been turned on", proc)
 }
 
 func cmdGuildctlOffFn(ctx context.Context, s *MessageSession) error {
@@ -147,9 +121,8 @@ func cmdGuildctlOffFn(ctx context.Context, s *MessageSession) error {
 		return s.Replyf(ctx, "Unknown setting \"%s\"", arg)
 	}
 
-	var val *bool
-	*val = false
-	updated, _, err := toggleSetting(ctx, s, proc, val)
+	val := false
+	updated, err := toggleSetting(ctx, s, proc, val)
 	if err != nil {
 		return err
 	}
@@ -158,25 +131,5 @@ func cmdGuildctlOffFn(ctx context.Context, s *MessageSession) error {
 		return s.Reply(ctx, "Unable to update guild setting")
 	}
 
-	return s.Replyf(ctx, "Guild setting \"%s\" has been disabled", arg)
-}
-
-func cmdGuildctlToggleFn(ctx context.Context, s *MessageSession) error {
-	arg := s.Args[0]
-
-	proc := settingsMap[arg]
-	if proc == "" {
-		return s.Replyf(ctx, "Unknown setting \"%s\"", arg)
-	}
-
-	updated, val, err := toggleSetting(ctx, s, proc, nil)
-	if err != nil {
-		return err
-	}
-
-	if !updated {
-		return s.Reply(ctx, "Unable to update guild setting")
-	}
-
-	return s.Replyf(ctx, "Guild setting \"%s\" has been set to %t", proc, val)
+	return s.Replyf(ctx, "Guild setting \"%s\" has been disabled", proc)
 }

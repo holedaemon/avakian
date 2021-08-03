@@ -3,6 +3,7 @@ package bot
 import (
 	"context"
 
+	"github.com/erei/avakian/internal/database/models"
 	"github.com/skwair/harmony/discord"
 )
 
@@ -28,4 +29,8 @@ func (rs *RegexSession) Reply(ctx context.Context, msg string) error {
 	channel := rs.Bot.Client.Channel(rs.Msg.ChannelID)
 	_, err := channel.SendMessage(ctx, msg)
 	return err
+}
+
+func (rs *RegexSession) QueryGuild(ctx context.Context) (*models.Guild, error) {
+	return rs.Bot.QueryGuild(ctx, rs.Msg.GuildID)
 }
