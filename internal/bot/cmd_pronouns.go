@@ -312,3 +312,34 @@ func cmdPronounsInit(ctx context.Context, s *MessageSession) error {
 
 	return s.Reply(ctx, "Pronoun roles initialized successfully")
 }
+
+func cmdPronounsImportFn(ctx context.Context, s *MessageSession) error {
+	if len(s.Args) == 0 {
+		return s.Reply(ctx, "One or more pronoun role identifier (name, snowflake) is required")
+	}
+
+	g, err := s.Bot.FetchGuild(ctx, s.Msg.GuildID)
+	if err != nil {
+		return err
+	}
+
+	for _, a := range s.Args {
+		for _, r := range g.Roles {
+			var prn *models.Pronoun
+
+			if 
+
+			if snowflake.Valid(a) && strings.EqualFold(a, r.ID) {
+				prn = &models.Pronoun{
+					GuildSnowflake: s.Msg.GuildID,
+					RoleSnowflake:  r.ID,
+					Pronoun:        r.Name,
+				}
+			}
+
+			if err := prn.Insert(ctx, s.Tx, boil.Infer()); err != nil {
+				return err
+			}
+		}
+	}
+}
