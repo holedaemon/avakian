@@ -37,6 +37,10 @@ var (
 			permissions: discord.PermissionManageRoles,
 			fn:          cmdPronounsCreate,
 		},
+		"import": {
+			permissions: discord.PermissionManageRoles,
+			fn:          cmdPronounsImport,
+		},
 		"delete": {
 			permissions: discord.PermissionManageRoles,
 			fn:          cmdPronounsDelete,
@@ -313,7 +317,7 @@ func cmdPronounsInit(ctx context.Context, s *MessageSession) error {
 	return s.Reply(ctx, "Pronoun roles initialized successfully")
 }
 
-func cmdPronounsImportFn(ctx context.Context, s *MessageSession) error {
+func cmdPronounsImport(ctx context.Context, s *MessageSession) error {
 	if len(s.Args) == 0 {
 		return s.Reply(ctx, "One or more pronoun role identifier (name, snowflake) is required")
 	}
@@ -323,23 +327,34 @@ func cmdPronounsImportFn(ctx context.Context, s *MessageSession) error {
 		return err
 	}
 
+	imported := 0
+
 	for _, a := range s.Args {
 		for _, r := range g.Roles {
-			var prn *models.Pronoun
-
-			if 
-
-			if snowflake.Valid(a) && strings.EqualFold(a, r.ID) {
-				prn = &models.Pronoun{
+			if strings.EqualFold(a, r.Name) ||
+				snowflake.Valid(a) && strings.EqualFold(a, r.ID) {
+				prn := &models.Pronoun{
+					Pronoun:        strings.ToLower(r.Name),
 					GuildSnowflake: s.Msg.GuildID,
 					RoleSnowflake:  r.ID,
-					Pronoun:        r.Name,
 				}
-			}
 
-			if err := prn.Insert(ctx, s.Tx, boil.Infer()); err != nil {
-				return err
+				if err := prn.Insert(ctx, s.Tx, boil.Infer()); err != nil {
+					return err
+				}
+
+				imported++
 			}
 		}
 	}
+
+	if imported > 0 {
+		if imported == 1 {
+			return s.Reply(ctx, "1 pronoun role was imported")
+		}
+
+		return s.Replyf(ctx, "%d pronoun roles were imported", imported)
+	}
+
+	return s.Reply(ctx, "No pronoun roles were imported")
 }
