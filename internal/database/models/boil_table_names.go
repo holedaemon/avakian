@@ -4,11 +4,13 @@
 package models
 
 var TableNames = struct {
-	Guilds   string
-	Prefixes string
-	Pronouns string
+	CustomCommands string
+	Guilds         string
+	Prefixes       string
+	Pronouns       string
 }{
-	Guilds:   "guilds",
-	Prefixes: "prefixes",
-	Pronouns: "pronouns",
+	CustomCommands: "custom_commands",
+	Guilds:         "guilds",
+	Prefixes:       "prefixes",
+	Pronouns:       "pronouns",
 }
