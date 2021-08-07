@@ -45,3 +45,9 @@ func WithTwitter(t *twitter.Client) Option {
 		b.Twitter = t
 	}
 }
+
+func WithAdmins(admins []string) Option {
+	return func(b *Bot) {
+		b.Admins = admins
+	}
+}

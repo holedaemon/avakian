@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -50,11 +51,15 @@ func main() {
 	prefix := os.Getenv("AVAKIAN_DISCORD_PREFIX")
 	token := os.Getenv("AVAKIAN_DISCORD_TOKEN")
 	dsn := os.Getenv("AVAKIAN_DB_DSN")
+	adminIDs := os.Getenv("AVAKIAN_ADMINS")
 
 	twitterAPIKey := os.Getenv("AVAKIAN_TWITTER_API_KEY")
 	twitterAPISecret := os.Getenv("AVAKIAN_TWITTER_API_SECRET")
 
-	opts = append(opts, bot.WithDebug(*debug), bot.WithLogger(zapx.Must(*debug)))
+	opts = append(opts,
+		bot.WithDebug(*debug),
+		bot.WithLogger(zapx.Must(*debug)),
+	)
 
 	if prefix != "" {
 		opts = append(opts, bot.WithDefaultPrefix(prefix))
@@ -71,6 +76,11 @@ func main() {
 	if twitterAPIKey != "" &&
 		twitterAPISecret != "" {
 		opts = append(opts, mainTwitter(twitterAPIKey, twitterAPISecret))
+	}
+
+	if adminIDs != "" {
+		admins := strings.Split(adminIDs, ",")
+		opts = append(opts, bot.WithAdmins(admins))
 	}
 
 	b, err := bot.NewBot(opts...)

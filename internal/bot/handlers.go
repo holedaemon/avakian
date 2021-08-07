@@ -120,6 +120,8 @@ func (b *Bot) handleMessage(m *discord.Message) {
 			ctxlog.Debug(ctx, "member does not have required permissions", zap.String("id", m.Author.ID))
 			return
 		}
+	} else {
+		ctxlog.Debug(ctx, "user is admin", zap.String("user_id", m.Author.ID))
 	}
 
 	tx, err := b.DB.BeginTx(ctx, nil)
