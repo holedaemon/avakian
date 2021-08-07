@@ -102,22 +102,24 @@ func (b *Bot) handleMessage(m *discord.Message) {
 		return
 	}
 
-	g, err := b.FetchGuild(ctx, m.GuildID)
-	if err != nil {
-		ctxlog.Error(ctx, "error fetching guild", zap.Error(err))
-		return
-	}
+	if !stringInSlice(m.Author.ID, b.Admins) {
+		g, err := b.FetchGuild(ctx, m.GuildID)
+		if err != nil {
+			ctxlog.Error(ctx, "error fetching guild", zap.Error(err))
+			return
+		}
 
-	mem, err := b.FetchMember(ctx, m.Author.ID, m.GuildID)
-	if err != nil {
-		ctxlog.Error(ctx, "error fetching member", zap.Error(err))
-		return
-	}
+		mem, err := b.FetchMember(ctx, m.Author.ID, m.GuildID)
+		if err != nil {
+			ctxlog.Error(ctx, "error fetching member", zap.Error(err))
+			return
+		}
 
-	p := mem.PermissionsIn(g, ch)
-	if !com.HasPermission(p) {
-		ctxlog.Debug(ctx, "member does not have required permissions", zap.String("id", m.Author.ID))
-		return
+		p := mem.PermissionsIn(g, ch)
+		if !com.HasPermission(p) {
+			ctxlog.Debug(ctx, "member does not have required permissions", zap.String("id", m.Author.ID))
+			return
+		}
 	}
 
 	tx, err := b.DB.BeginTx(ctx, nil)

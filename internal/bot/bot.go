@@ -29,6 +29,7 @@ var (
 type Bot struct {
 	Debug         bool
 	DefaultPrefix string
+	Admins        []string
 
 	Twitter *twitter.Client
 	DB      *sql.DB
