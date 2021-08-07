@@ -103,6 +103,7 @@ func (b *Bot) handleMessage(m *discord.Message) {
 	}
 
 	if !stringInSlice(m.Author.ID, b.Admins) {
+		ctxlog.Debug(ctx, "user is not an admin", zap.String("user_id", m.Author.ID))
 		g, err := b.FetchGuild(ctx, m.GuildID)
 		if err != nil {
 			ctxlog.Error(ctx, "error fetching guild", zap.Error(err))
