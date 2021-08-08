@@ -51,30 +51,7 @@ func cmdPrefixFn(ctx context.Context, s *MessageSession) error {
 		return usage()
 	}
 
-	subSess := *s
-	subSess.Args = s.Args[1:]
-	sub := s.Args[0]
-
-	cmd := prefixCommands[sub]
-	if cmd == nil {
-		return usage()
-	}
-
-	p, err := s.Bot.FetchMemberPermissions(ctx, s.Msg.GuildID, s.Msg.ChannelID, s.Msg.Author.ID)
-	if err != nil {
-		return err
-	}
-
-	if !cmd.HasPermission(p) {
-		ctxlog.Debug(ctx, "member lacks permission to run command", zapx.Member(s.Msg.Author.ID))
-		return nil
-	}
-
-	if err := cmd.Execute(ctx, &subSess); err != nil {
-		return err
-	}
-
-	return nil
+	return s.Bot.runMessageSubcommand(ctx, s, prefixCommands, usage)
 }
 
 func cmdPrefixAddFn(ctx context.Context, s *MessageSession) error {
