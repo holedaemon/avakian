@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -33,7 +34,6 @@ func die(a ...interface{}) {
 func main() {
 	envFile := getopt.String("e", ".env", "path to .env file")
 	useEnvFile := getopt.Bool("u", false, "load variables from file?")
-	debug := getopt.Bool("d", false, "run in debug mode?")
 
 	if err := getopt.Parse(); err != nil {
 		die("error parsing command line:", err.Error())
@@ -49,6 +49,7 @@ func main() {
 
 	opts := []bot.Option{}
 	prefix := os.Getenv("AVAKIAN_DISCORD_PREFIX")
+	debugEnv := os.Getenv("AVAKIAN_DEBUG")
 	token := os.Getenv("AVAKIAN_DISCORD_TOKEN")
 	dsn := os.Getenv("AVAKIAN_DB_DSN")
 	adminIDs := os.Getenv("AVAKIAN_ADMINS")
@@ -56,9 +57,15 @@ func main() {
 	twitterAPIKey := os.Getenv("AVAKIAN_TWITTER_API_KEY")
 	twitterAPISecret := os.Getenv("AVAKIAN_TWITTER_API_SECRET")
 
+	debug, err := strconv.ParseBool(debugEnv)
+	if err != nil {
+		die("unable to parse debug variable:", err)
+		return
+	}
+
 	opts = append(opts,
-		bot.WithDebug(*debug),
-		bot.WithLogger(zapx.Must(*debug)),
+		bot.WithDebug(debug),
+		bot.WithLogger(zapx.Must(debug)),
 	)
 
 	if prefix != "" {
