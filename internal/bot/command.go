@@ -32,4 +32,5 @@ type Session interface {
 
 type Command interface {
 	Execute(context.Context, Session) error
+	Usage(context.Context, Session) error
 }

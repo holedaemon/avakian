@@ -38,6 +38,7 @@ func (ms *MessageSession) Replyf(ctx context.Context, msg string, args ...interf
 
 type MessageCommand struct {
 	permissions int
+	usage       string
 	fn          func(context.Context, *MessageSession) error
 }
 
@@ -57,4 +58,13 @@ func (mc *MessageCommand) Execute(ctx context.Context, s Session) error {
 	}
 
 	return mc.fn(ctx, ms)
+}
+
+func (mc *MessageCommand) Usage(ctx context.Context, s Session) error {
+	ms, ok := s.(*MessageSession)
+	if !ok {
+		panic("wrong session type given")
+	}
+
+	return ms.Replyf(ctx, "Usage: %s%s", ms.Prefix, mc.usage)
 }

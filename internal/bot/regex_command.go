@@ -20,6 +20,11 @@ func (rg *RegexCommand) Execute(ctx context.Context, s Session) error {
 	return rg.fn(ctx, sess)
 }
 
+// no-op
+func (rg *RegexCommand) Usage(context.Context, Session) error {
+	return nil
+}
+
 type RegexSession struct {
 	Msg *discord.Message
 	Bot *Bot
