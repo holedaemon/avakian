@@ -44,14 +44,22 @@ func buildUsage(prefix, command string, commands interface{}) string {
 	}
 }
 
-func (b *Bot) runMessageSubcommand(ctx context.Context, s *MessageSession, subCommands map[string]*MessageCommand, usage func() error) error {
+func (b *Bot) runMessageSubcommand(ctx context.Context, s *MessageSession, subCommands map[string]*MessageCommand, returnUsage bool) error {
 	subSess := *s
 	subSess.Args = s.Args[1:]
 	sub := s.Args[0]
 
+	usage := func() error {
+		return s.Replyf(ctx, "Usage: `%s`", buildUsage(s.Prefix, strings.ToLower(s.Args[1]), subCommands))
+	}
+
 	cmd := subCommands[sub]
 	if cmd == nil {
-		return usage()
+		if returnUsage {
+			return usage()
+		} else {
+			return nil
+		}
 	}
 
 	if !stringInSlice(s.Msg.Author.ID, b.Admins) {

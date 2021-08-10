@@ -68,7 +68,7 @@ func cmdPronounsFn(ctx context.Context, s *MessageSession) error {
 		return usage()
 	}
 
-	return s.Bot.runMessageSubcommand(ctx, s, pronounsCommands, usage)
+	return s.Bot.runMessageSubcommand(ctx, s, pronounsCommands, true)
 }
 
 func cmdPronounsAdd(ctx context.Context, s *MessageSession) error {
