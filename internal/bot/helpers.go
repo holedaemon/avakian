@@ -1,12 +1,7 @@
 package bot
 
 import (
-	"context"
 	"strings"
-
-	"github.com/erei/avakian/internal/pkg/zapx"
-	"github.com/zikaeroh/ctxlog"
-	"go.uber.org/zap"
 )
 
 func stringInSlice(want string, sl []string) bool {
@@ -19,12 +14,12 @@ func stringInSlice(want string, sl []string) bool {
 	return false
 }
 
-func buildUsage(prefix, command string, commands interface{}) string {
+func buildUsage(command string, commands interface{}) string {
 	switch commands := commands.(type) {
 	case map[string]*MessageCommand:
 		var sb strings.Builder
 
-		sb.WriteString(prefix + command + " <")
+		sb.WriteString(command + " <")
 
 		i := 1
 		for k := range commands {
@@ -42,43 +37,4 @@ func buildUsage(prefix, command string, commands interface{}) string {
 	default:
 		panic("invalid type passed to buildUsage()")
 	}
-}
-
-func (b *Bot) runMessageSubcommand(ctx context.Context, s *MessageSession, subCommands map[string]*MessageCommand, returnUsage bool) error {
-	subSess := *s
-	subSess.Args = s.Args[1:]
-	sub := s.Args[0]
-
-	usage := func() error {
-		return s.Replyf(ctx, "Usage: `%s`", buildUsage(s.Prefix, strings.ToLower(s.Args[1]), subCommands))
-	}
-
-	cmd := subCommands[sub]
-	if cmd == nil {
-		if returnUsage {
-			return usage()
-		} else {
-			return nil
-		}
-	}
-
-	if !stringInSlice(s.Msg.Author.ID, b.Admins) {
-		p, err := s.Bot.FetchMemberPermissions(ctx, s.Msg.GuildID, s.Msg.ChannelID, s.Msg.Author.ID)
-		if err != nil {
-			return err
-		}
-
-		if !cmd.HasPermission(p) {
-			ctxlog.Debug(ctx, "member lacks permission to run command", zapx.Member(s.Msg.Author.ID))
-			return nil
-		}
-	} else {
-		ctxlog.Debug(ctx, "user is an admin", zap.String("user_id", s.Msg.Author.ID))
-	}
-
-	if err := cmd.Execute(ctx, &subSess); err != nil {
-		return err
-	}
-
-	return nil
 }

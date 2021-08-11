@@ -16,9 +16,10 @@ var (
 	cmdPronouns = &MessageCommand{
 		permissions: discord.PermissionSendMessages,
 		fn:          cmdPronounsFn,
+		usage:       buildUsage("pronouns", pronounsCommands),
 	}
 
-	pronounsCommands = map[string]*MessageCommand{
+	pronounsCommands = messageCommandMap{
 		"init": {
 			permissions: discord.PermissionManageRoles,
 			fn:          cmdPronounsInit,
@@ -60,15 +61,11 @@ var (
 )
 
 func cmdPronounsFn(ctx context.Context, s *MessageSession) error {
-	usage := func() error {
-		return s.Replyf(ctx, "Usage: `%s`", buildUsage(s.Prefix, "pronouns", pronounsCommands))
-	}
-
 	if len(s.Args) == 0 {
-		return usage()
+		return ErrUsage
 	}
 
-	return s.Bot.runMessageSubcommand(ctx, s, pronounsCommands, true)
+	return pronounsCommands.ExecuteSubCommand(ctx, s)
 }
 
 func cmdPronounsAdd(ctx context.Context, s *MessageSession) error {

@@ -21,6 +21,7 @@ var (
 	cmdPrefix = &MessageCommand{
 		permissions: discord.PermissionSendMessages,
 		fn:          cmdPrefixFn,
+		usage:       buildUsage("prefix", prefixCommands),
 	}
 
 	cmdDeletePrefix = &MessageCommand{
@@ -28,7 +29,7 @@ var (
 		fn:          cmdPrefixRemoveFn,
 	}
 
-	prefixCommands = map[string]*MessageCommand{
+	prefixCommands = messageCommandMap{
 		"add": {
 			permissions: discord.PermissionManageGuild,
 			fn:          cmdPrefixAddFn,
@@ -43,15 +44,11 @@ var (
 )
 
 func cmdPrefixFn(ctx context.Context, s *MessageSession) error {
-	usage := func() error {
-		return s.Replyf(ctx, "Usage: `%s`", buildUsage(s.Prefix, "prefix", prefixCommands))
-	}
-
 	if len(s.Args) == 0 {
-		return usage()
+		return ErrUsage
 	}
 
-	return s.Bot.runMessageSubcommand(ctx, s, prefixCommands, usage)
+	return prefixCommands.ExecuteSubCommand(ctx, s)
 }
 
 func cmdPrefixAddFn(ctx context.Context, s *MessageSession) error {

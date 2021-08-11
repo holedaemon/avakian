@@ -14,6 +14,7 @@ var (
 	cmdGuildctl = &MessageCommand{
 		fn:          cmdGuildctlFn,
 		permissions: discord.PermissionManageGuild,
+		usage:       buildUsage("guildctl", guildctlCommands),
 	}
 
 	cmdGuildctlOn = &MessageCommand{
@@ -27,43 +28,17 @@ var (
 	}
 )
 
-var guildctlCommands = map[string]*MessageCommand{
+var guildctlCommands = messageCommandMap{
 	"on":  cmdGuildctlOn,
 	"off": cmdGuildctlOff,
 }
 
 func cmdGuildctlFn(ctx context.Context, s *MessageSession) error {
-	usage := func() error {
-		return s.Replyf(ctx, "Usage: `%s`", buildUsage(s.Prefix, "guildctl", guildctlCommands))
-	}
-
 	if len(s.Args) == 0 {
-		return usage()
+		return ErrUsage
 	}
 
-	subSess := *s
-	subSess.Args = s.Args[1:]
-	sub := s.Args[0]
-
-	cmd := guildctlCommands[sub]
-	if cmd == nil {
-		return usage()
-	}
-
-	p, err := s.Bot.FetchMemberPermissions(ctx, s.Msg.GuildID, s.Msg.ChannelID, s.Msg.Author.ID)
-	if err != nil {
-		return err
-	}
-
-	if !cmd.HasPermission(p) {
-		return nil
-	}
-
-	if err := cmd.Execute(ctx, &subSess); err != nil {
-		return err
-	}
-
-	return nil
+	return guildctlCommands.ExecuteSubCommand(ctx, s)
 }
 
 var settingsMap = map[string]string{

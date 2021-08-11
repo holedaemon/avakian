@@ -2,11 +2,14 @@ package bot
 
 import (
 	"context"
+	"errors"
 )
 
 var (
 	defaultMessageCommands map[string]*MessageCommand
 	defaultRegexCommands   []*RegexCommand
+
+	ErrUsage = errors.New("bot: send usage")
 )
 
 func init() {
@@ -33,5 +36,3 @@ type Command interface {
 	HasPermission(int) bool
 	Usage(context.Context, Session) error
 }
-
-type commandMap map[string]Command
