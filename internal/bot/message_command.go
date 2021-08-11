@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/erei/avakian/internal/database/models"
 	"github.com/skwair/harmony/discord"
 )
 
@@ -19,10 +18,6 @@ type MessageSession struct {
 
 	Bot *Bot
 	Tx  *sql.Tx
-}
-
-func (ms *MessageSession) QueryGuild(ctx context.Context) (*models.Guild, error) {
-	return ms.Bot.QueryGuild(ctx, ms.Msg.GuildID)
 }
 
 func (ms *MessageSession) Reply(ctx context.Context, msg string) error {
@@ -42,7 +37,6 @@ type MessageCommand struct {
 	fn          func(context.Context, *MessageSession) error
 }
 
-// NOTE: check that this is correct
 func (mc *MessageCommand) HasPermission(p int) bool {
 	if p == discord.PermissionAdministrator {
 		return true
@@ -64,6 +58,10 @@ func (mc *MessageCommand) Usage(ctx context.Context, s Session) error {
 	ms, ok := s.(*MessageSession)
 	if !ok {
 		panic("wrong session type given")
+	}
+
+	if mc.usage == "" {
+		return ms.Reply(ctx, "Example usage was not provided for this command")
 	}
 
 	return ms.Replyf(ctx, "Usage: %s%s", ms.Prefix, mc.usage)

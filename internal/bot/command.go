@@ -2,8 +2,6 @@ package bot
 
 import (
 	"context"
-
-	"github.com/erei/avakian/internal/database/models"
 )
 
 var (
@@ -27,10 +25,13 @@ func init() {
 
 type Session interface {
 	Reply(context.Context, string) error
-	QueryGuild(context.Context) (*models.Guild, error)
+	Replyf(context.Context, string, ...interface{}) error
 }
 
 type Command interface {
 	Execute(context.Context, Session) error
+	HasPermission(int) bool
 	Usage(context.Context, Session) error
 }
+
+type commandMap map[string]Command

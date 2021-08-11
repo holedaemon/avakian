@@ -2,8 +2,8 @@ package bot
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/erei/avakian/internal/database/models"
 	"github.com/skwair/harmony/discord"
 )
 
@@ -36,6 +36,7 @@ func (rs *RegexSession) Reply(ctx context.Context, msg string) error {
 	return err
 }
 
-func (rs *RegexSession) QueryGuild(ctx context.Context) (*models.Guild, error) {
-	return rs.Bot.QueryGuild(ctx, rs.Msg.GuildID)
+func (rs *RegexSession) Replyf(ctx context.Context, msg string, args ...interface{}) error {
+	msg = fmt.Sprintf(msg, args...)
+	return rs.Reply(ctx, msg)
 }
