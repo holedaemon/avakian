@@ -1,9 +1,10 @@
-package bot
+package avakian
 
 import (
 	"context"
 	"strings"
 
+	"github.com/erei/avakian/internal/bot/message"
 	"github.com/erei/avakian/internal/database/models"
 	"github.com/erei/avakian/internal/pkg/modelsx"
 	"github.com/erei/avakian/internal/pkg/snowflake"
@@ -13,42 +14,57 @@ import (
 )
 
 var (
-	cmdPronouns = &MessageCommand{
-		permissions: discord.PermissionSendMessages,
-		fn:          cmdPronounsFn,
-		usage:       buildUsage("pronouns", pronounsCommands),
-	}
+	cmdPronouns = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionSendMessages),
+		message.WithCommandUsage(pronounsCommands.BuildUsage("pronouns")),
+		message.WithCommandFn(cmdPronounsFn),
+	)
 
-	pronounsCommands = messageCommandMap{
-		"init": {
-			permissions: discord.PermissionManageRoles,
-			fn:          cmdPronounsInit,
-		},
-		"add": {
-			permissions: discord.PermissionSendMessages,
-			fn:          cmdPronounsAdd,
-		},
-		"remove": {
-			permissions: discord.PermissionSendMessages,
-			fn:          cmdPronounsRemove,
-		},
-		"create": {
-			permissions: discord.PermissionManageRoles,
-			fn:          cmdPronounsCreate,
-		},
-		"import": {
-			permissions: discord.PermissionManageRoles,
-			fn:          cmdPronounsImport,
-		},
-		"delete": {
-			permissions: discord.PermissionManageRoles,
-			fn:          cmdPronounsDelete,
-		},
-		"list": {
-			permissions: discord.PermissionSendMessages,
-			fn:          cmdPronounsList,
-		},
-	}
+	cmdPronounsInit = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionManageRoles),
+		message.WithCommandFn(cmdPronounsInitFn),
+	)
+
+	cmdPronounsAdd = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionSendMessages),
+		message.WithCommandFn(cmdPronounsAddFn),
+	)
+
+	cmdPronounsRemove = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionSendMessages),
+		message.WithCommandFn(cmdPronounsRemoveFn),
+	)
+
+	cmdPronounsCreate = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionManageRoles),
+		message.WithCommandFn(cmdPronounsCreateFn),
+	)
+
+	cmdPronounsDelete = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionManageRoles),
+		message.WithCommandFn(cmdPronounsDeleteFn),
+	)
+
+	cmdPronounsImport = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionManageRoles),
+		message.WithCommandFn(cmdPronounsImportFn),
+	)
+
+	cmdPronounsList = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionSendMessages),
+		message.WithCommandFn(cmdPronounsListFn),
+	)
+
+	pronounsCommands = message.NewCommandMap(
+		message.WithMapScope(true),
+		message.WithMapCommand("add", cmdPronounsAdd),
+		message.WithMapCommand("remove", cmdPronounsRemove),
+		message.WithMapCommand("create", cmdPronounsCreate),
+		message.WithMapCommand("delete", cmdPronounsDelete),
+		message.WithMapCommand("init", cmdPronounsInit),
+		message.WithMapCommand("import", cmdPronounsImport),
+		message.WithMapCommand("list", cmdPronounsList),
+	)
 
 	defaultPronouns = []string{
 		"he/him",
@@ -60,18 +76,12 @@ var (
 	}
 )
 
-func cmdPronounsFn(ctx context.Context, s *MessageSession) error {
-	if len(s.Args) == 0 {
-		return ErrUsage
-	}
-
-	return pronounsCommands.ExecuteSubCommand(ctx, s)
+func cmdPronounsFn(ctx context.Context, s *message.Session) error {
+	return pronounsCommands.ExecuteCommand(ctx, s)
 }
 
-func cmdPronounsAdd(ctx context.Context, s *MessageSession) error {
-	if len(s.Args) == 0 {
-		return s.Reply(ctx, "At least one argument is required")
-	}
+func cmdPronounsAddFn(ctx context.Context, s *message.Session) error {
+	b := getBot(s)
 
 	prn := s.Args[0]
 	dp, err := modelsx.GetPronoun(ctx, s.Tx, s.Msg.GuildID, prn)
@@ -83,17 +93,15 @@ func cmdPronounsAdd(ctx context.Context, s *MessageSession) error {
 		return s.Reply(ctx, "The requested pronoun role do not exist on this guild")
 	}
 
-	if err := s.Bot.AddRole(ctx, s.Msg.GuildID, s.Msg.Author.ID, dp.RoleSnowflake, "Automated; pronoun role requested"); err != nil {
+	if err := b.AddRole(ctx, s.Msg.GuildID, s.Msg.Author.ID, dp.RoleSnowflake, "Automated; pronoun role requested"); err != nil {
 		return err
 	}
 
 	return s.Replyf(ctx, "Thou hath been branded %s", strings.ToUpper(prn))
 }
 
-func cmdPronounsRemove(ctx context.Context, s *MessageSession) error {
-	if len(s.Args) == 0 {
-		return s.Reply(ctx, "At least one argument is required")
-	}
+func cmdPronounsRemoveFn(ctx context.Context, s *message.Session) error {
+	b := getBot(s)
 
 	prn := s.Args[0]
 	dp, err := modelsx.GetPronoun(ctx, s.Tx, s.Msg.GuildID, prn)
@@ -105,17 +113,15 @@ func cmdPronounsRemove(ctx context.Context, s *MessageSession) error {
 		return s.Reply(ctx, "The requested pronoun role does not exist on this guild")
 	}
 
-	if err := s.Bot.RemoveRole(ctx, s.Msg.GuildID, s.Msg.Author.ID, dp.RoleSnowflake, "Automated; pronoun removal requested"); err != nil {
+	if err := b.RemoveRole(ctx, s.Msg.GuildID, s.Msg.Author.ID, dp.RoleSnowflake, "Automated; pronoun removal requested"); err != nil {
 		return err
 	}
 
 	return s.Replyf(ctx, "Thou no longer bears the brand of %s", dp.Pronoun)
 }
 
-func cmdPronounsCreate(ctx context.Context, s *MessageSession) error {
-	if len(s.Args) == 0 {
-		return s.Reply(ctx, "At least one argument is required")
-	}
+func cmdPronounsCreateFn(ctx context.Context, s *message.Session) error {
+	b := getBot(s)
 
 	prn := s.Args[0]
 	exists, err := modelsx.PronounExists(ctx, s.Tx, s.Msg.GuildID, prn)
@@ -127,7 +133,7 @@ func cmdPronounsCreate(ctx context.Context, s *MessageSession) error {
 		return s.Reply(ctx, "The given pronouns already have a role on this server")
 	}
 
-	role, err := s.Bot.CreateRole(ctx, s.Msg.GuildID, "Automated; creation of pronoun role", discord.WithRoleName(prn))
+	role, err := b.CreateRole(ctx, s.Msg.GuildID, "Automated; creation of pronoun role", discord.WithRoleName(prn))
 	if err != nil {
 		return err
 	}
@@ -145,10 +151,8 @@ func cmdPronounsCreate(ctx context.Context, s *MessageSession) error {
 	return s.Reply(ctx, "Pronoun role has been created")
 }
 
-func cmdPronounsDelete(ctx context.Context, s *MessageSession) error {
-	if len(s.Args) == 0 {
-		return s.Reply(ctx, "At least one argument is required")
-	}
+func cmdPronounsDeleteFn(ctx context.Context, s *message.Session) error {
+	b := getBot(s)
 
 	prn := s.Args[0]
 	id, deleted, err := modelsx.DeletePronoun(ctx, s.Tx, s.Msg.GuildID, prn)
@@ -160,14 +164,14 @@ func cmdPronounsDelete(ctx context.Context, s *MessageSession) error {
 		return s.Reply(ctx, "The requested pronoun role does not exist on this guild")
 	}
 
-	if err := s.Bot.DeleteRole(ctx, s.Msg.GuildID, id, "Automated; pronoun removal requested"); err != nil {
+	if err := b.DeleteRole(ctx, s.Msg.GuildID, id, "Automated; pronoun removal requested"); err != nil {
 		return err
 	}
 
 	return s.Reply(ctx, "Deleted pronoun role from guild")
 }
 
-func cmdPronounsList(ctx context.Context, s *MessageSession) error {
+func cmdPronounsListFn(ctx context.Context, s *message.Session) error {
 	list, err := modelsx.Pronouns(ctx, s.Tx, s.Msg.GuildID)
 	if err != nil {
 		return err
@@ -190,8 +194,10 @@ func cmdPronounsList(ctx context.Context, s *MessageSession) error {
 	return s.Reply(ctx, sb.String())
 }
 
-func cmdPronounsInit(ctx context.Context, s *MessageSession) error {
-	g, err := s.Bot.FetchGuild(ctx, s.Msg.GuildID)
+func cmdPronounsInitFn(ctx context.Context, s *message.Session) error {
+	b := getBot(s)
+
+	g, err := b.FetchGuild(ctx, s.Msg.GuildID)
 	if err != nil {
 		return err
 	}
@@ -225,7 +231,7 @@ func cmdPronounsInit(ctx context.Context, s *MessageSession) error {
 		key = strings.ToLower(key)
 
 		if val == "" {
-			r, err := s.Bot.CreateRole(ctx, s.Msg.GuildID, "Initializing pronoun roles...", discord.WithRoleName(key))
+			r, err := b.CreateRole(ctx, s.Msg.GuildID, "Initializing pronoun roles...", discord.WithRoleName(key))
 			if err != nil {
 				fmtError(key, "api", err)
 				continue
@@ -289,12 +295,10 @@ func cmdPronounsInit(ctx context.Context, s *MessageSession) error {
 	return s.Reply(ctx, "Pronoun roles initialized successfully")
 }
 
-func cmdPronounsImport(ctx context.Context, s *MessageSession) error {
-	if len(s.Args) == 0 {
-		return s.Reply(ctx, "One or more pronoun role identifier (name, snowflake) is required")
-	}
+func cmdPronounsImportFn(ctx context.Context, s *message.Session) error {
+	b := getBot(s)
 
-	g, err := s.Bot.FetchGuild(ctx, s.Msg.GuildID)
+	g, err := b.FetchGuild(ctx, s.Msg.GuildID)
 	if err != nil {
 		return err
 	}

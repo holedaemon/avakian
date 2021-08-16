@@ -1,9 +1,10 @@
-package bot
+package avakian
 
 import (
 	"context"
 	"strings"
 
+	"github.com/erei/avakian/internal/bot/message"
 	"github.com/erei/avakian/internal/database/models"
 	"github.com/skwair/harmony/discord"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -11,34 +12,31 @@ import (
 )
 
 var (
-	cmdGuildctl = &MessageCommand{
-		fn:          cmdGuildctlFn,
-		permissions: discord.PermissionManageGuild,
-		usage:       buildUsage("guildctl", guildctlCommands),
-	}
+	cmdGuildctl = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionManageGuild),
+		message.WithCommandUsage(guildctlCommands.BuildUsage("guildctl")),
+		message.WithCommandFn(cmdGuildctlFn),
+	)
 
-	cmdGuildctlOn = &MessageCommand{
-		fn:          cmdGuildctlOnFn,
-		permissions: discord.PermissionManageGuild,
-	}
+	cmdGuildctlOn = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionManageGuild),
+		message.WithCommandFn(cmdGuildctlOnFn),
+	)
 
-	cmdGuildctlOff = &MessageCommand{
-		fn:          cmdGuildctlOffFn,
-		permissions: discord.PermissionManageGuild,
-	}
+	cmdGuildctlOff = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionManageGuild),
+		message.WithCommandFn(cmdGuildctlOffFn),
+	)
 )
 
-var guildctlCommands = messageCommandMap{
-	"on":  cmdGuildctlOn,
-	"off": cmdGuildctlOff,
-}
+var guildctlCommands = message.NewCommandMap(
+	message.WithMapScope(true),
+	message.WithMapCommand("on", cmdGuildctlOn),
+	message.WithMapCommand("off", cmdGuildctlOff),
+)
 
-func cmdGuildctlFn(ctx context.Context, s *MessageSession) error {
-	if len(s.Args) == 0 {
-		return ErrUsage
-	}
-
-	return guildctlCommands.ExecuteSubCommand(ctx, s)
+func cmdGuildctlFn(ctx context.Context, s *message.Session) error {
+	return guildctlCommands.ExecuteCommand(ctx, s)
 }
 
 var settingsMap = map[string]string{
@@ -48,7 +46,7 @@ var settingsMap = map[string]string{
 	"tv":            "embed_twitter_videos",
 }
 
-func toggleSetting(ctx context.Context, s *MessageSession, setting string, val bool) (bool, error) {
+func toggleSetting(ctx context.Context, s *message.Session, setting string, val bool) (bool, error) {
 	guild, err := models.Guilds(qm.Where("guild_snowflake = ?", s.Msg.GuildID)).One(ctx, s.Tx)
 	if err != nil {
 		return false, err
@@ -66,7 +64,7 @@ func toggleSetting(ctx context.Context, s *MessageSession, setting string, val b
 	return true, nil
 }
 
-func cmdGuildctlOnFn(ctx context.Context, s *MessageSession) error {
+func cmdGuildctlOnFn(ctx context.Context, s *message.Session) error {
 	arg := strings.ToLower(s.Args[0])
 
 	proc := settingsMap[arg]
@@ -88,7 +86,7 @@ func cmdGuildctlOnFn(ctx context.Context, s *MessageSession) error {
 	return s.Replyf(ctx, "Guild setting \"%s\" has been turned on", proc)
 }
 
-func cmdGuildctlOffFn(ctx context.Context, s *MessageSession) error {
+func cmdGuildctlOffFn(ctx context.Context, s *message.Session) error {
 	arg := s.Args[0]
 
 	proc := settingsMap[arg]

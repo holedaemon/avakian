@@ -1,4 +1,4 @@
-package bot
+package avakian
 
 import (
 	"context"
@@ -8,7 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/erei/avakian/internal/bot"
+	"github.com/erei/avakian/internal/bot/message"
 	"github.com/erei/avakian/internal/database/models"
+	"github.com/erei/avakian/internal/pkg/modelsx"
 	"github.com/erei/avakian/internal/pkg/zapx"
 	"github.com/skwair/harmony"
 	"github.com/skwair/harmony/discord"
@@ -77,57 +80,9 @@ func (b *Bot) handleMessage(m *discord.Message) {
 		return
 	}
 
-	rs := b.RegexSession(m)
-	for _, r := range defaultRegexCommands {
-		if err := r.Execute(ctx, rs); err != nil {
-			ctxlog.Error(ctx, "error running regex command", zap.Error(err))
-		}
-	}
-
-	prefs, err := b.GuildPrefixes(ctx, m.GuildID)
-	if err != nil {
-		ctxlog.Error(ctx, "error getting guild prefixes, reverting to default", zap.Error(err))
-	}
-
-	argv := strings.Split(m.Content, " ")
-	prefix := argv[0][:1]
-	cmd := argv[0][1:]
-
-	if prefix != b.DefaultPrefix && !stringInSlice(prefix, prefs) {
-		return
-	}
-
-	com, ok := defaultMessageCommands[cmd]
-	if !ok {
-		return
-	}
-
-	if !stringInSlice(m.Author.ID, b.Admins) {
-		ctxlog.Debug(ctx, "user is not an admin", zap.String("user_id", m.Author.ID))
-		g, err := b.FetchGuild(ctx, m.GuildID)
-		if err != nil {
-			ctxlog.Error(ctx, "error fetching guild", zap.Error(err))
-			return
-		}
-
-		mem, err := b.FetchMember(ctx, m.Author.ID, m.GuildID)
-		if err != nil {
-			ctxlog.Error(ctx, "error fetching member", zap.Error(err))
-			return
-		}
-
-		p := mem.PermissionsIn(g, ch)
-		if !com.HasPermission(p) {
-			ctxlog.Debug(ctx, "member does not have required permissions", zap.String("id", m.Author.ID))
-			return
-		}
-	} else {
-		ctxlog.Debug(ctx, "user is admin", zap.String("user_id", m.Author.ID))
-	}
-
 	tx, err := b.DB.BeginTx(ctx, nil)
 	if err != nil {
-		ctxlog.Error(ctx, "error beginning db transaction", zap.Error(err))
+		ctxlog.Error(ctx, "error starting transaction", zap.Error(err))
 		return
 	}
 
@@ -142,33 +97,47 @@ func (b *Bot) handleMessage(m *discord.Message) {
 		}
 	}()
 
-	sess := b.MessageSession(m)
-	sess.Tx = tx
-
-	err = com.Execute(ctx, sess)
+	g, err := modelsx.GetGuildWithPrefixes(ctx, tx, m.GuildID)
 	if err != nil {
-		ctxlog.Error(ctx, "error during command execution", zap.Error(err))
+		ctxlog.Error(ctx, "error getting guild", zap.Error(err))
+		return
+	}
 
-		switch err := err.(type) {
-		case discord.APIError:
-			switch err.HTTPCode {
-			case http.StatusUnauthorized:
-				if err := sess.Reply(ctx, "According to Discord, I'm not authorized to perform whatever it is I'm doing"); err != nil {
-					ctxlog.Error(ctx, "error sending message", zap.Error(err))
-				}
-			case http.StatusForbidden:
-				if err := sess.Reply(ctx, "According to Discord, I'm FORBIDDEN from doing whatever I was asked to do"); err != nil {
-					ctxlog.Error(ctx, "error sending message", zap.Error(err))
-				}
-			}
-		default:
-			if err := sess.Reply(ctx, "An unknown error has occurred, see if you can make sense of it: `"+err.Error()+"`"); err != nil {
-				ctxlog.Error(ctx, "error sending message", zap.Error(err))
-			}
-		}
-	} else {
+	argv := strings.Split(m.Content, " ")
+	prefix := argv[0][:1]
+
+	if prefix != b.DefaultPrefix && !g.HasPrefix(prefix) {
+		return
+	}
+
+	s := message.NewMessageSession(
+		message.WithSessionClient(b),
+		message.WithSessionGuild(g),
+		message.WithSessionMessage(m),
+		message.WithSessionTx(tx),
+	)
+
+	err = messageCommands.ExecuteCommand(ctx, s)
+
+	switch err {
+	case nil:
 		if err := tx.Commit(); err != nil {
 			ctxlog.Error(ctx, "error committing transaction", zap.Error(err))
+		}
+	case bot.ErrCommandNotExist, bot.ErrPermission:
+		ctxlog.Debug(ctx, "error returned during command execution", zap.Error(err))
+	case bot.ErrUsage:
+		if err := messageCommands.SendUsage(ctx, s); err != nil {
+			ctxlog.Error(ctx, "error sending command usage", zap.Error(err))
+		}
+	default:
+		ae, ok := err.(discord.APIError)
+		if ok {
+			ctxlog.Error(ctx, "http error during command execution", zap.Error(ae), zap.Int("status", ae.HTTPCode))
+
+			if err := s.Replyf(ctx, "HTTP error encountered during execution: %d %s", ae.HTTPCode, http.StatusText(ae.HTTPCode)); err != nil {
+				ctxlog.Error(ctx, "error sending error message", zap.Error(err))
+			}
 		}
 	}
 }

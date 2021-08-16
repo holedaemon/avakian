@@ -2,25 +2,21 @@ package modelsx
 
 import (
 	"context"
-	"database/sql"
-	"os"
 	"testing"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+
 	"gotest.tools/v3/assert"
 )
 
 func TestCanGetGuildWithPrefix(t *testing.T) {
-	dsn := os.Getenv("MODELSX_TEST_DSN")
+	db := makeDB(t)
 
-	db, err := sql.Open("pgx", dsn)
-	assert.NilError(t, err, "opening db")
+	boil.DebugMode = true
 
-	defer db.Close()
+	ctx := context.Background()
 
-	guild, err := GetGuildWithPrefixes(context.Background(), db, "gfhghdhfdgf")
-	assert.NilError(t, err, "getting guild")
-
-	t.Log(guild)
-
+	_, err := GetGuildWithPrefixes(ctx, db, "gfhghdhfdgf")
+	assert.NilError(t, err, "getting guild with prefix")
 }

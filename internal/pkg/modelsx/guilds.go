@@ -2,26 +2,36 @@ package modelsx
 
 import (
 	"context"
+	"time"
 
-	"github.com/erei/avakian/internal/database/models"
 	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/queries"
+	"github.com/volatiletech/sqlboiler/v4/types"
 )
 
-type GuildWithPrefix struct {
-	models.Guild  `boil:",bind"`
-	models.Prefix `boil:",bind"`
+type GuildWithPrefixes struct {
+	ID                 int64             `boil:"id"`
+	GuildSnowflake     string            `boil:"guild_snowflake"`
+	EmbedTwitterVideos bool              `boil:"embed_twitter_videos"`
+	CreatedAt          time.Time         `boil:"created_at"`
+	UpdatedAt          time.Time         `boil:"updated_at"`
+	Prefixes           types.StringArray `boil:"prefixes"`
 }
 
-func GetGuildWithPrefixes(ctx context.Context, exec boil.ContextExecutor, guildID string) (*GuildWithPrefix, error) {
-	var gp *GuildWithPrefix
+func (g *GuildWithPrefixes) HasPrefix(p string) bool {
+	for _, pr := range g.Prefixes {
+		if pr == p {
+			return true
+		}
+	}
 
-	err := models.NewQuery(
-		qm.Select("prefixes.prefix"),
-		qm.From("guilds"),
-		qm.InnerJoin("prefixes ON prefixes.guild_snowflake = ?", guildID),
-	).Bind(ctx, exec, gp)
+	return false
+}
 
+func GetGuildWithPrefixes(ctx context.Context, exec boil.ContextExecutor, guildID string) (*GuildWithPrefixes, error) {
+	gp := new(GuildWithPrefixes)
+
+	err := queries.Raw("SELECT guilds.*, array_agg(prefixes.prefix) FILTER (WHERE prefixes.prefix IS NOT NULL) AS prefixes FROM guilds LEFT JOIN prefixes ON guilds.guild_snowflake = prefixes.guild_snowflake WHERE guilds.guild_snowflake = $1 GROUP BY guilds.id;", guildID).Bind(ctx, exec, gp)
 	if err != nil {
 		return nil, err
 	}

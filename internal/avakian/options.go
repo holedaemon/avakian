@@ -1,4 +1,4 @@
-package bot
+package avakian
 
 import (
 	"database/sql"

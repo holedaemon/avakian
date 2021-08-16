@@ -16,7 +16,7 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 
 	"git.sr.ht/~sircmpwn/getopt"
-	"github.com/erei/avakian/internal/bot"
+	"github.com/erei/avakian/internal/avakian"
 	"github.com/erei/avakian/internal/pkg/zapx"
 	"github.com/joho/godotenv"
 	"github.com/skwair/harmony"
@@ -47,7 +47,7 @@ func main() {
 		}
 	}
 
-	opts := []bot.Option{}
+	opts := []avakian.Option{}
 	prefix := os.Getenv("AVAKIAN_DISCORD_PREFIX")
 	debugEnv := os.Getenv("AVAKIAN_DEBUG")
 	token := os.Getenv("AVAKIAN_DISCORD_TOKEN")
@@ -64,12 +64,12 @@ func main() {
 	}
 
 	opts = append(opts,
-		bot.WithDebug(debug),
-		bot.WithLogger(zapx.Must(debug)),
+		avakian.WithDebug(debug),
+		avakian.WithLogger(zapx.Must(debug)),
 	)
 
 	if prefix != "" {
-		opts = append(opts, bot.WithDefaultPrefix(prefix))
+		opts = append(opts, avakian.WithDefaultPrefix(prefix))
 	}
 
 	if token != "" {
@@ -87,10 +87,10 @@ func main() {
 
 	if adminIDs != "" {
 		admins := strings.Split(adminIDs, ",")
-		opts = append(opts, bot.WithAdmins(admins))
+		opts = append(opts, avakian.WithAdmins(admins))
 	}
 
-	b, err := bot.NewBot(opts...)
+	b, err := avakian.NewBot(opts...)
 	if err != nil {
 		die("error creating bot:", err.Error())
 		return
@@ -110,17 +110,17 @@ func main() {
 	b.Disconnect()
 }
 
-func mainClient(token string) bot.Option {
+func mainClient(token string) avakian.Option {
 	client, err := harmony.NewClient(token)
 	if err != nil {
 		die("error creating client:", err.Error())
 		return nil
 	}
 
-	return bot.WithClient(client)
+	return avakian.WithClient(client)
 }
 
-func mainDB(dsn string) bot.Option {
+func mainDB(dsn string) avakian.Option {
 	var db *sql.DB
 	connected := false
 
@@ -142,10 +142,10 @@ func mainDB(dsn string) bot.Option {
 		db = conn
 	}
 
-	return bot.WithDB(db)
+	return avakian.WithDB(db)
 }
 
-func mainTwitter(key, secret string) bot.Option {
+func mainTwitter(key, secret string) avakian.Option {
 	config := &clientcredentials.Config{
 		ClientID:     key,
 		ClientSecret: secret,
@@ -154,5 +154,5 @@ func mainTwitter(key, secret string) bot.Option {
 
 	cli := config.Client(context.Background())
 
-	return bot.WithTwitter(twitter.NewClient(cli))
+	return avakian.WithTwitter(twitter.NewClient(cli))
 }

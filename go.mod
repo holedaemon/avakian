@@ -14,5 +14,5 @@ require (
 	github.com/zikaeroh/ctxlog v0.0.0-20210526021226-f475ac537d51
 	go.uber.org/zap v1.18.1
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
-	mvdan.cc/xurls/v2 v2.2.0
+	gotest.tools/v3 v3.0.3
 )

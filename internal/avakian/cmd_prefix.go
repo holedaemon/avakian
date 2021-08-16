@@ -1,4 +1,4 @@
-package bot
+package avakian
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/erei/avakian/internal/bot/message"
 	"github.com/erei/avakian/internal/database/models"
 	"github.com/erei/avakian/internal/pkg/zapx"
 	"github.com/skwair/harmony/discord"
@@ -18,50 +19,49 @@ import (
 const guildMaxPrefix = 5
 
 var (
-	cmdPrefix = &MessageCommand{
-		permissions: discord.PermissionSendMessages,
-		fn:          cmdPrefixFn,
-		usage:       buildUsage("prefix", prefixCommands),
-	}
+	cmdPrefix = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionSendMessages),
+		message.WithCommandUsage(prefixCommands.BuildUsage("prefix")),
+		message.WithCommandFn(cmdPrefixFn),
+	)
 
-	cmdDeletePrefix = &MessageCommand{
-		permissions: discord.PermissionManageGuild,
-		fn:          cmdPrefixRemoveFn,
-	}
+	cmdPrefixDelete = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionSendMessages),
+		message.WithCommandFn(cmdPrefixRemoveFn),
+	)
 
-	prefixCommands = messageCommandMap{
-		"add": {
-			permissions: discord.PermissionManageGuild,
-			fn:          cmdPrefixAddFn,
-		},
-		"list": {
-			permissions: discord.PermissionSendMessages,
-			fn:          cmdPrefixListFn,
-		},
-		"remove": cmdDeletePrefix,
-		"delete": cmdDeletePrefix,
-	}
+	cmdPrefixAdd = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionManageGuild),
+		message.WithCommandFn(cmdPrefixAddFn),
+	)
+
+	cmdPrefixList = message.NewCommand(
+		message.WithCommandPermissions(discord.PermissionSendMessages),
+		message.WithCommandFn(cmdPrefixListFn),
+	)
+
+	prefixCommands = message.NewCommandMap(
+		message.WithMapScope(true),
+		message.WithMapCommand("add", cmdPrefixAdd),
+		message.WithMapCommand("delete", cmdPrefixDelete),
+		message.WithMapCommand("remove", cmdPrefixDelete),
+		message.WithMapCommand("list", cmdPrefixList),
+	)
 )
 
-func cmdPrefixFn(ctx context.Context, s *MessageSession) error {
-	if len(s.Args) == 0 {
-		return ErrUsage
-	}
-
-	return prefixCommands.ExecuteSubCommand(ctx, s)
+func cmdPrefixFn(ctx context.Context, s *message.Session) error {
+	return prefixCommands.ExecuteCommand(ctx, s)
 }
 
-func cmdPrefixAddFn(ctx context.Context, s *MessageSession) error {
-	if len(s.Args) == 0 {
-		return s.Reply(ctx, "At least one argument is required")
-	}
+func cmdPrefixAddFn(ctx context.Context, s *message.Session) error {
+	b := getBot(s)
 
 	newPrefix := s.Args[0]
 	if len(newPrefix) > 1 {
 		return s.Reply(ctx, "For the sake of simplicity, prefixes can only be a single character in length")
 	}
 
-	if newPrefix == s.Bot.DefaultPrefix {
+	if newPrefix == b.DefaultPrefix {
 		return s.Reply(ctx, "You can't act upon the global prefix, doofus")
 	}
 
@@ -99,17 +99,15 @@ func cmdPrefixAddFn(ctx context.Context, s *MessageSession) error {
 	return s.Replyf(ctx, "Character %s will henceforth be accepted as a prefix", newPrefix)
 }
 
-func cmdPrefixRemoveFn(ctx context.Context, s *MessageSession) error {
-	if len(s.Args) == 0 {
-		return s.Reply(ctx, "At least 1 argument is required")
-	}
+func cmdPrefixRemoveFn(ctx context.Context, s *message.Session) error {
+	b := getBot(s)
 
 	oldPrefix := s.Args[0]
 	if len(oldPrefix) > 1 {
 		return s.Reply(ctx, "Prefixes aren't more than a single character in length")
 	}
 
-	if oldPrefix == s.Bot.DefaultPrefix {
+	if oldPrefix == b.DefaultPrefix {
 		return s.Reply(ctx, "You can't act upon the global prefix, doofus")
 	}
 
@@ -132,7 +130,7 @@ func cmdPrefixRemoveFn(ctx context.Context, s *MessageSession) error {
 	return s.Reply(ctx, "Prefix has been removed")
 }
 
-func cmdPrefixListFn(ctx context.Context, s *MessageSession) error {
+func cmdPrefixListFn(ctx context.Context, s *message.Session) error {
 	var sb strings.Builder
 	sb.WriteString("Registered prefixes:\n```")
 
