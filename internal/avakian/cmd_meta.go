@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"git.sr.ht/~sircmpwn/getopt"
-	"github.com/erei/avakian/internal/bot/message"
+	"github.com/holedaemon/avakian/internal/bot/message"
 	"github.com/skwair/harmony/discord"
 )
 

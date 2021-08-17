@@ -16,8 +16,8 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 
 	"git.sr.ht/~sircmpwn/getopt"
-	"github.com/erei/avakian/internal/avakian"
-	"github.com/erei/avakian/internal/pkg/zapx"
+	"github.com/holedaemon/avakian/internal/avakian"
+	"github.com/holedaemon/avakian/internal/pkg/zapx"
 	"github.com/joho/godotenv"
 	"github.com/skwair/harmony"
 )

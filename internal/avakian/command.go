@@ -1,8 +1,8 @@
 package avakian
 
 import (
-	"github.com/erei/avakian/internal/bot/message"
-	"github.com/erei/avakian/internal/bot/regex"
+	"github.com/holedaemon/avakian/internal/bot/message"
+	"github.com/holedaemon/avakian/internal/bot/regex"
 )
 
 var (

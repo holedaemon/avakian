@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/erei/avakian/internal/bot"
-	"github.com/erei/avakian/internal/pkg/modelsx"
+	"github.com/holedaemon/avakian/internal/bot"
+	"github.com/holedaemon/avakian/internal/pkg/modelsx"
 	"github.com/skwair/harmony/discord"
 )
 

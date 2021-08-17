@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/erei/avakian/internal/bot"
+	"github.com/holedaemon/avakian/internal/bot"
 )
 
 type CommandMapOption func(*CommandMap)

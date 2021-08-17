@@ -8,9 +8,9 @@ import (
 	"sort"
 
 	"github.com/dghubble/go-twitter/twitter"
-	"github.com/erei/avakian/internal/bot/regex"
-	"github.com/erei/avakian/internal/pkg/httpx"
-	"github.com/erei/avakian/internal/pkg/snowflake"
+	"github.com/holedaemon/avakian/internal/bot/regex"
+	"github.com/holedaemon/avakian/internal/pkg/httpx"
+	"github.com/holedaemon/avakian/internal/pkg/snowflake"
 	"github.com/zikaeroh/ctxlog"
 )
 

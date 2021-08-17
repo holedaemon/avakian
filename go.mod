@@ -1,4 +1,4 @@
-module github.com/erei/avakian
+module github.com/holedaemon/avakian
 
 go 1.16
 

@@ -3,7 +3,7 @@ package avakian
 import (
 	"strings"
 
-	"github.com/erei/avakian/internal/bot"
+	"github.com/holedaemon/avakian/internal/bot"
 )
 
 func stringInSlice(want string, sl []string) bool {

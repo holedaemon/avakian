@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/erei/avakian/internal/bot/message"
-	"github.com/erei/avakian/internal/database/models"
+	"github.com/holedaemon/avakian/internal/bot/message"
+	"github.com/holedaemon/avakian/internal/database/models"
 	"github.com/skwair/harmony/discord"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"

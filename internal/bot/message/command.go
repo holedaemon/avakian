@@ -3,7 +3,7 @@ package message
 import (
 	"context"
 
-	"github.com/erei/avakian/internal/bot"
+	"github.com/holedaemon/avakian/internal/bot"
 	"github.com/skwair/harmony/discord"
 )
 

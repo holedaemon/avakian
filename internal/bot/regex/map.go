@@ -4,7 +4,7 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/erei/avakian/internal/bot"
+	"github.com/holedaemon/avakian/internal/bot"
 )
 
 type CommandMap struct {
