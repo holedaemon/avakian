@@ -10,6 +10,7 @@ import (
 
 	"github.com/erei/avakian/internal/bot"
 	"github.com/erei/avakian/internal/bot/message"
+	"github.com/erei/avakian/internal/bot/regex"
 	"github.com/erei/avakian/internal/database/models"
 	"github.com/erei/avakian/internal/pkg/modelsx"
 	"github.com/erei/avakian/internal/pkg/zapx"
@@ -101,6 +102,22 @@ func (b *Bot) handleMessage(m *discord.Message) {
 	if err != nil {
 		ctxlog.Error(ctx, "error getting guild", zap.Error(err))
 		return
+	}
+
+	reSess := regex.NewSession(
+		regex.WithSessionClient(b),
+		regex.WithSessionGuild(g),
+		regex.WithSessionMessage(m),
+	)
+
+	if err := regexCommands.ExecuteCommand(ctx, reSess); err != nil {
+		switch err {
+		case regex.ErrCondition:
+			ctxlog.Debug(ctx, "non-fatal condition met in regex command", zap.Error(err))
+		case bot.ErrCommandNotExist:
+		default:
+			ctxlog.Error(ctx, "error running regex command on message", zap.Error(err), zap.String("message", m.Content))
+		}
 	}
 
 	argv := strings.Split(m.Content, " ")
