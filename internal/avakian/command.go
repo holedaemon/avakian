@@ -8,7 +8,6 @@ import (
 var (
 	messageCommands *message.CommandMap
 	regexCommands   *regex.CommandMap
-	// defaultRegexCommands []*RegexCommand
 )
 
 func init() {
