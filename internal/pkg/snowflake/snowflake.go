@@ -3,6 +3,12 @@ package snowflake
 import (
 	"regexp"
 	"strconv"
+	"time"
+)
+
+const (
+	someRandomNumber = 4194304
+	DiscordEpoch     = 1420070400000
 )
 
 var sfRe = regexp.MustCompile(`\d{0,20}`)
@@ -18,4 +24,14 @@ func AsInt64(sf string) (int64, error) {
 	}
 
 	return i, nil
+}
+
+func Time(sf string) (time.Time, error) {
+	isf, err := AsInt64(sf)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	ms := isf/someRandomNumber + DiscordEpoch
+	return time.UnixMilli(ms), nil
 }

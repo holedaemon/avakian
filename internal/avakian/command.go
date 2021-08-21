@@ -20,6 +20,8 @@ func init() {
 		message.WithMapCommand("pronouns", cmdPronouns),
 		message.WithMapCommand("guildctl", cmdGuildctl),
 		message.WithMapCommand("version", cmdVersion),
+		message.WithMapCommand("sf", cmdSnowflake),
+		message.WithMapCommand("snowflake", cmdSnowflake),
 	)
 
 	regexCommands = regex.NewCommandMap(
