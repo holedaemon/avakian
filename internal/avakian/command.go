@@ -22,6 +22,7 @@ func init() {
 		message.WithMapCommand("version", cmdVersion),
 		message.WithMapCommand("sf", cmdSnowflake),
 		message.WithMapCommand("snowflake", cmdSnowflake),
+		message.WithMapCommand("admin", cmdAdmin),
 	)
 
 	regexCommands = regex.NewCommandMap(

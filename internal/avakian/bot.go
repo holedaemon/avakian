@@ -6,7 +6,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/holedaemon/avakian/internal/bot"
@@ -36,6 +38,7 @@ type Bot struct {
 	DB      *sql.DB
 	Logger  *zap.Logger
 	Client  *harmony.Client
+	HTTP    *http.Client
 }
 
 func NewBot(opts ...Option) (*Bot, error) {
@@ -77,6 +80,12 @@ func (b *Bot) defaults() error {
 
 	if b.DefaultPrefix == "" {
 		b.DefaultPrefix = defaultPrefix
+	}
+
+	if b.HTTP == nil {
+		b.HTTP = &http.Client{
+			Timeout: time.Second * 10,
+		}
 	}
 
 	return nil
