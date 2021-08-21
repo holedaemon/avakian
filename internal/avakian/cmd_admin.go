@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/holedaemon/avakian/internal/bot/message"
+	"github.com/holedaemon/avakian/internal/pkg/httpx"
 	"github.com/zikaeroh/ctxlog"
 )
 
@@ -96,7 +97,7 @@ func cmdAdminAvatarFn(ctx context.Context, s *message.Session) error {
 	defer res.Body.Close()
 
 	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusMultipleChoices {
-		return fmt.Errorf("%w: %d", ErrHTTPStatus, res.StatusCode)
+		return fmt.Errorf("%w: %d", httpx.ErrStatusCode, res.StatusCode)
 	}
 
 	ct := res.Header.Get("Content-Type")

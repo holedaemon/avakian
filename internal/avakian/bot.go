@@ -26,7 +26,6 @@ const (
 )
 
 var (
-	ErrHTTPStatus   = errors.New("avakian: unexpected HTTP status")
 	ErrClientOption = errors.New("avakian: missing required option")
 )
 
