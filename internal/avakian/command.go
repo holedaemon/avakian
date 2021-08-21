@@ -26,6 +26,6 @@ func init() {
 	)
 
 	regexCommands = regex.NewCommandMap(
-		regex.WithMapCommand(`https?:\/\/twitter.com/[a-zA-Z]{4,15}/status/\d{1,20}(?:\?s=\d{0,2})?`, regTwitter),
+		regex.WithMapCommand(`https?:\/\/twitter.com\/[a-zA-Z_]{4,15}\/status\/\d{1,20}(?:\?s=\d{0,2})?`, regTwitter),
 	)
 }
