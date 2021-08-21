@@ -26,13 +26,15 @@ const (
 )
 
 var (
-	ErrClientOption = errors.New("bot: missing required option")
+	ErrHTTPStatus   = errors.New("avakian: unexpected HTTP status")
+	ErrClientOption = errors.New("avakian: missing required option")
 )
 
 type Bot struct {
 	Debug         bool
 	DefaultPrefix string
 	Admins        []string
+	Token         string
 
 	Twitter *twitter.Client
 	DB      *sql.DB

@@ -134,6 +134,8 @@ func (b *Bot) handleMessage(m *discord.Message) {
 		message.WithSessionTx(tx),
 	)
 
+	ctxlog.Debug(ctx, "attempting to run command")
+
 	err = messageCommands.ExecuteCommand(ctx, s)
 
 	switch err {
@@ -148,13 +150,15 @@ func (b *Bot) handleMessage(m *discord.Message) {
 			ctxlog.Error(ctx, "error sending command usage", zap.Error(err))
 		}
 	default:
-		ae, ok := err.(discord.APIError)
+		ae, ok := err.(*discord.APIError)
 		if ok {
-			ctxlog.Error(ctx, "http error during command execution", zap.Error(ae), zap.Int("status", ae.HTTPCode))
+			ctxlog.Error(ctx, "http error during command execution", zap.Error(ae), zap.String("message", ae.Message), zap.Int("status", ae.HTTPCode))
 
 			if err := s.Replyf(ctx, "HTTP error encountered during execution: %d %s", ae.HTTPCode, http.StatusText(ae.HTTPCode)); err != nil {
 				ctxlog.Error(ctx, "error sending error message", zap.Error(err))
 			}
 		}
+
+		ctxlog.Error(ctx, "error running command", zap.Error(err))
 	}
 }

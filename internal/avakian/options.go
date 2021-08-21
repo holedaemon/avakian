@@ -28,6 +28,12 @@ func WithDB(d *sql.DB) Option {
 	}
 }
 
+func WithToken(t string) Option {
+	return func(b *Bot) {
+		b.Token = t
+	}
+}
+
 func WithClient(c *harmony.Client) Option {
 	return func(b *Bot) {
 		b.Client = c

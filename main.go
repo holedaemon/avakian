@@ -74,6 +74,7 @@ func main() {
 
 	if token != "" {
 		opts = append(opts, mainClient(token))
+		opts = append(opts, avakian.WithToken(token))
 	}
 
 	if dsn != "" {
