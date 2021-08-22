@@ -24,13 +24,13 @@ func WithSessionGuild(g *modelsx.GuildWithPrefixes) SessionOption {
 	}
 }
 
-func WithBot(b bot.Client) SessionOption {
+func WithSessionBot(b bot.Client) SessionOption {
 	return func(s *Session) {
 		s.Bot = b
 	}
 }
 
-func WithTx(tx *sql.Tx) SessionOption {
+func WithSessionTx(tx *sql.Tx) SessionOption {
 	return func(s *Session) {
 		s.Tx = tx
 	}
@@ -43,6 +43,16 @@ type Session struct {
 
 	Bot bot.Client
 	Tx  *sql.Tx
+}
+
+func NewSession(opts ...SessionOption) *Session {
+	s := new(Session)
+
+	for _, o := range opts {
+		o(s)
+	}
+
+	return s
 }
 
 func (s *Session) Client() bot.Client {

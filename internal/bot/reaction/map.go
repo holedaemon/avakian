@@ -2,6 +2,7 @@ package reaction
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/holedaemon/avakian/internal/bot"
 )
@@ -19,7 +20,9 @@ type CommandMap struct {
 }
 
 func NewCommandMap(opts ...CommandMapOption) *CommandMap {
-	cm := new(CommandMap)
+	cm := &CommandMap{
+		intMap: make(map[string]*Command),
+	}
 
 	for _, o := range opts {
 		o(cm)
@@ -33,6 +36,8 @@ func (cm *CommandMap) ExecuteCommand(ctx context.Context, sess bot.Session) erro
 	if !ok {
 		panic("wrong session type passed to command")
 	}
+
+	fmt.Println(s.Reaction.Emoji)
 
 	name := s.Reaction.Emoji.ID
 	cmd, ok := cm.intMap[name]

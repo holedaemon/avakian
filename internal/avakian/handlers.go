@@ -10,6 +10,7 @@ import (
 
 	"github.com/holedaemon/avakian/internal/bot"
 	"github.com/holedaemon/avakian/internal/bot/message"
+	"github.com/holedaemon/avakian/internal/bot/reaction"
 	"github.com/holedaemon/avakian/internal/bot/regex"
 	"github.com/holedaemon/avakian/internal/database/models"
 	"github.com/holedaemon/avakian/internal/pkg/modelsx"
@@ -160,5 +161,47 @@ func (b *Bot) handleMessage(m *discord.Message) {
 		}
 
 		ctxlog.Error(ctx, "error running command", zap.Error(err))
+	}
+}
+
+func (b *Bot) handleMessageReactionAdd(r *harmony.MessageReaction) {
+	ctx := context.Background()
+	ctx = ctxlog.WithLogger(ctx, b.Logger)
+
+	tx, err := b.DB.BeginTx(ctx, nil)
+	if err != nil {
+		ctxlog.Error(ctx, "error starting transaction", zap.Error(err))
+		return
+	}
+
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			if errors.Is(err, sql.ErrTxDone) {
+				ctxlog.Debug(ctx, "transaction done")
+				return
+			}
+
+			ctxlog.Error(ctx, "error rolling back transaction", zap.Error(err))
+		}
+	}()
+
+	g, err := modelsx.GetGuildWithPrefixes(ctx, tx, r.GuildID)
+	if err != nil {
+		ctxlog.Error(ctx, "error getting guild", zap.Error(err))
+		return
+	}
+
+	s := reaction.NewSession(
+		reaction.WithSessionReaction(r),
+		reaction.WithSessionBot(b),
+		reaction.WithSessionGuild(g),
+		reaction.WithSessionTx(tx),
+	)
+
+	err = reactionCommands.ExecuteCommand(ctx, s)
+	if err != nil {
+		if err := tx.Commit(); err != nil {
+			ctxlog.Error(ctx, "error committing transaction", zap.Error(err))
+		}
 	}
 }

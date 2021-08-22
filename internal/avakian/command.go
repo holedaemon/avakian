@@ -2,12 +2,14 @@ package avakian
 
 import (
 	"github.com/holedaemon/avakian/internal/bot/message"
+	"github.com/holedaemon/avakian/internal/bot/reaction"
 	"github.com/holedaemon/avakian/internal/bot/regex"
 )
 
 var (
-	messageCommands *message.CommandMap
-	regexCommands   *regex.CommandMap
+	messageCommands  *message.CommandMap
+	regexCommands    *regex.CommandMap
+	reactionCommands *reaction.CommandMap
 )
 
 func init() {
@@ -26,5 +28,9 @@ func init() {
 
 	regexCommands = regex.NewCommandMap(
 		regex.WithMapCommand(`https?:\/\/twitter.com\/[a-zA-Z_]{4,15}\/status\/\d{1,20}(?:\?s=\d{0,2})?`, regTwitter),
+	)
+
+	reactionCommands = reaction.NewCommandMap(
+		reaction.WithMapCommand("876588067966832710", reactMeta),
 	)
 }
