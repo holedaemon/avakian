@@ -31,6 +31,7 @@ func init() {
 	)
 
 	reactionCommands = reaction.NewCommandMap(
-		reaction.WithMapCommand("876588067966832710", reactMeta),
+		reaction.WithMapCommand("😎", reactMeta),
+		reaction.WithMapCommand("💬", reactQuote),
 	)
 }

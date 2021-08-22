@@ -15,6 +15,7 @@ import (
 	"github.com/holedaemon/avakian/internal/bot/message"
 	"github.com/holedaemon/avakian/internal/database/models"
 	"github.com/holedaemon/avakian/internal/pkg/zapx"
+	"github.com/patrickmn/go-cache"
 	"github.com/skwair/harmony"
 	"github.com/skwair/harmony/discord"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -35,11 +36,12 @@ type Bot struct {
 	Admins        []string
 	Token         string
 
-	Twitter *twitter.Client
-	DB      *sql.DB
-	Logger  *zap.Logger
-	Client  *harmony.Client
-	HTTP    *http.Client
+	MessageCache *cache.Cache
+	Twitter      *twitter.Client
+	DB           *sql.DB
+	Logger       *zap.Logger
+	Client       *harmony.Client
+	HTTP         *http.Client
 }
 
 func NewBot(opts ...Option) (*Bot, error) {
@@ -88,6 +90,10 @@ func (b *Bot) defaults() error {
 		b.HTTP = &http.Client{
 			Timeout: time.Second * 10,
 		}
+	}
+
+	if b.MessageCache == nil {
+		b.MessageCache = cache.New(time.Minute*5, time.Minute*10)
 	}
 
 	return nil
@@ -184,6 +190,26 @@ func (b *Bot) FetchMemberPermissions(ctx context.Context, gid, cid, mid string) 
 	}
 
 	return mb.PermissionsIn(gd, ch), nil
+}
+
+func (b *Bot) FetchMessage(ctx context.Context, cid string, mid string) (*discord.Message, error) {
+	msg, found := b.MessageCache.Get(mid)
+	if found {
+		m, ok := msg.(*discord.Message)
+		if ok {
+			return m, nil
+		}
+	}
+
+	ch := b.Client.Channel(cid)
+	m, err := ch.Message(ctx, mid)
+	if err != nil {
+		return nil, err
+	}
+
+	b.MessageCache.Set(mid, m, cache.DefaultExpiration)
+
+	return m, nil
 }
 
 func (b *Bot) GuildPrefixes(ctx context.Context, id string) ([]string, error) {

@@ -200,8 +200,11 @@ func (b *Bot) handleMessageReactionAdd(r *harmony.MessageReaction) {
 
 	err = reactionCommands.ExecuteCommand(ctx, s)
 	if err != nil {
-		if err := tx.Commit(); err != nil {
-			ctxlog.Error(ctx, "error committing transaction", zap.Error(err))
-		}
+		ctxlog.Error(ctx, "error executing command", zap.Error(err))
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		ctxlog.Error(ctx, "error committing transaction", zap.Error(err))
 	}
 }

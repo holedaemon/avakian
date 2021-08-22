@@ -6,7 +6,7 @@ no-rows-affected = true
 [psql]
 dbname = "avakian"
 host = "localhost"
-port = 5432
+port = 5431
 user = "avakian"
 pass = "avakian"
 sslmode = "disable"

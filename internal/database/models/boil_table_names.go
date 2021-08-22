@@ -8,9 +8,11 @@ var TableNames = struct {
 	Guilds         string
 	Prefixes       string
 	Pronouns       string
+	Quotes         string
 }{
 	CustomCommands: "custom_commands",
 	Guilds:         "guilds",
 	Prefixes:       "prefixes",
 	Pronouns:       "pronouns",
+	Quotes:         "quotes",
 }

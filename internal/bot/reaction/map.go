@@ -2,7 +2,6 @@ package reaction
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/holedaemon/avakian/internal/bot"
 )
@@ -37,9 +36,11 @@ func (cm *CommandMap) ExecuteCommand(ctx context.Context, sess bot.Session) erro
 		panic("wrong session type passed to command")
 	}
 
-	fmt.Println(s.Reaction.Emoji)
-
 	name := s.Reaction.Emoji.ID
+	if name == "" {
+		name = s.Reaction.Emoji.Name
+	}
+
 	cmd, ok := cm.intMap[name]
 	if !ok {
 		return bot.ErrCommandNotExist
