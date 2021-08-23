@@ -8,7 +8,7 @@ require (
 	github.com/friendsofgo/errors v0.9.2
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/joho/godotenv v1.3.0
-	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/skwair/harmony v0.18.1-0.20210408101644-63b40974201c
 	github.com/volatiletech/null/v8 v8.1.2
 	github.com/volatiletech/sqlboiler/v4 v4.6.0
