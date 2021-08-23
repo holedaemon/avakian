@@ -7,7 +7,9 @@ CREATE TABLE quotes (
 
     quoter_snowflake text NOT NULL,
     author_snowflake text NOT NULL,
+
     message_snowflake text NOT NULL UNIQUE,
+    channel_snowflake text NOT NULL,
     guild_snowflake text NOT NULL,
 
     created_at timestamp NOT NULL DEFAULT NOW(),

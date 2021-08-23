@@ -15,7 +15,6 @@ import (
 	"github.com/holedaemon/avakian/internal/bot/message"
 	"github.com/holedaemon/avakian/internal/database/models"
 	"github.com/holedaemon/avakian/internal/pkg/zapx"
-	"github.com/patrickmn/go-cache"
 	"github.com/skwair/harmony"
 	"github.com/skwair/harmony/discord"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -36,7 +35,7 @@ type Bot struct {
 	Admins        []string
 	Token         string
 
-	MessageCache *cache.Cache
+	MessageCache *MessageCache
 	Twitter      *twitter.Client
 	DB           *sql.DB
 	Logger       *zap.Logger
@@ -93,7 +92,7 @@ func (b *Bot) defaults() error {
 	}
 
 	if b.MessageCache == nil {
-		b.MessageCache = cache.New(time.Minute*5, time.Minute*10)
+		b.MessageCache = NewMessageCache()
 	}
 
 	return nil
@@ -195,10 +194,7 @@ func (b *Bot) FetchMemberPermissions(ctx context.Context, gid, cid, mid string) 
 func (b *Bot) FetchMessage(ctx context.Context, cid string, mid string) (*discord.Message, error) {
 	msg, found := b.MessageCache.Get(mid)
 	if found {
-		m, ok := msg.(*discord.Message)
-		if ok {
-			return m, nil
-		}
+		return msg, nil
 	}
 
 	ch := b.Client.Channel(cid)
@@ -207,7 +203,7 @@ func (b *Bot) FetchMessage(ctx context.Context, cid string, mid string) (*discor
 		return nil, err
 	}
 
-	b.MessageCache.Set(mid, m, cache.DefaultExpiration)
+	b.MessageCache.Set(m)
 
 	return m, nil
 }

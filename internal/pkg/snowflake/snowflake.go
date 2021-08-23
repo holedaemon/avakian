@@ -1,6 +1,7 @@
 package snowflake
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"time"
@@ -34,4 +35,13 @@ func Time(sf string) (time.Time, error) {
 
 	ms := isf/someRandomNumber + DiscordEpoch
 	return time.UnixMilli(ms), nil
+}
+
+func MarkdownTime(sf string) string {
+	t, err := Time(sf)
+	if err != nil {
+		return "???"
+	}
+
+	return fmt.Sprintf("<t:%d>", t.Unix())
 }

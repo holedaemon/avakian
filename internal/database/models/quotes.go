@@ -28,6 +28,7 @@ type Quote struct {
 	QuoterSnowflake  string    `boil:"quoter_snowflake" json:"quoter_snowflake" toml:"quoter_snowflake" yaml:"quoter_snowflake"`
 	AuthorSnowflake  string    `boil:"author_snowflake" json:"author_snowflake" toml:"author_snowflake" yaml:"author_snowflake"`
 	MessageSnowflake string    `boil:"message_snowflake" json:"message_snowflake" toml:"message_snowflake" yaml:"message_snowflake"`
+	ChannelSnowflake string    `boil:"channel_snowflake" json:"channel_snowflake" toml:"channel_snowflake" yaml:"channel_snowflake"`
 	GuildSnowflake   string    `boil:"guild_snowflake" json:"guild_snowflake" toml:"guild_snowflake" yaml:"guild_snowflake"`
 	CreatedAt        time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt        time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
@@ -42,6 +43,7 @@ var QuoteColumns = struct {
 	QuoterSnowflake  string
 	AuthorSnowflake  string
 	MessageSnowflake string
+	ChannelSnowflake string
 	GuildSnowflake   string
 	CreatedAt        string
 	UpdatedAt        string
@@ -51,6 +53,7 @@ var QuoteColumns = struct {
 	QuoterSnowflake:  "quoter_snowflake",
 	AuthorSnowflake:  "author_snowflake",
 	MessageSnowflake: "message_snowflake",
+	ChannelSnowflake: "channel_snowflake",
 	GuildSnowflake:   "guild_snowflake",
 	CreatedAt:        "created_at",
 	UpdatedAt:        "updated_at",
@@ -62,6 +65,7 @@ var QuoteTableColumns = struct {
 	QuoterSnowflake  string
 	AuthorSnowflake  string
 	MessageSnowflake string
+	ChannelSnowflake string
 	GuildSnowflake   string
 	CreatedAt        string
 	UpdatedAt        string
@@ -71,6 +75,7 @@ var QuoteTableColumns = struct {
 	QuoterSnowflake:  "quotes.quoter_snowflake",
 	AuthorSnowflake:  "quotes.author_snowflake",
 	MessageSnowflake: "quotes.message_snowflake",
+	ChannelSnowflake: "quotes.channel_snowflake",
 	GuildSnowflake:   "quotes.guild_snowflake",
 	CreatedAt:        "quotes.created_at",
 	UpdatedAt:        "quotes.updated_at",
@@ -107,6 +112,7 @@ var QuoteWhere = struct {
 	QuoterSnowflake  whereHelperstring
 	AuthorSnowflake  whereHelperstring
 	MessageSnowflake whereHelperstring
+	ChannelSnowflake whereHelperstring
 	GuildSnowflake   whereHelperstring
 	CreatedAt        whereHelpertime_Time
 	UpdatedAt        whereHelpertime_Time
@@ -116,6 +122,7 @@ var QuoteWhere = struct {
 	QuoterSnowflake:  whereHelperstring{field: "\"quotes\".\"quoter_snowflake\""},
 	AuthorSnowflake:  whereHelperstring{field: "\"quotes\".\"author_snowflake\""},
 	MessageSnowflake: whereHelperstring{field: "\"quotes\".\"message_snowflake\""},
+	ChannelSnowflake: whereHelperstring{field: "\"quotes\".\"channel_snowflake\""},
 	GuildSnowflake:   whereHelperstring{field: "\"quotes\".\"guild_snowflake\""},
 	CreatedAt:        whereHelpertime_Time{field: "\"quotes\".\"created_at\""},
 	UpdatedAt:        whereHelpertime_Time{field: "\"quotes\".\"updated_at\""},
@@ -138,8 +145,8 @@ func (*quoteR) NewStruct() *quoteR {
 type quoteL struct{}
 
 var (
-	quoteAllColumns            = []string{"id", "idx", "quoter_snowflake", "author_snowflake", "message_snowflake", "guild_snowflake", "created_at", "updated_at"}
-	quoteColumnsWithoutDefault = []string{"idx", "quoter_snowflake", "author_snowflake", "message_snowflake", "guild_snowflake"}
+	quoteAllColumns            = []string{"id", "idx", "quoter_snowflake", "author_snowflake", "message_snowflake", "channel_snowflake", "guild_snowflake", "created_at", "updated_at"}
+	quoteColumnsWithoutDefault = []string{"idx", "quoter_snowflake", "author_snowflake", "message_snowflake", "channel_snowflake", "guild_snowflake"}
 	quoteColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	quotePrimaryKeyColumns     = []string{"id"}
 )

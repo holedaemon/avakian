@@ -30,12 +30,16 @@ func getBot(s bot.Session) *Bot {
 	return b
 }
 
-func fullUsername(u *discord.GuildMember) string {
+func username(u *discord.GuildMember) string {
 	if u.Nick != "" {
 		return u.Nick
 	}
 
 	return u.User.Username
+}
+
+func fullUsernameFromMessage(msg *discord.Message) string {
+	return msg.Author.Username + "#" + msg.Author.Discriminator
 }
 
 func jumpLinkFromSession(s bot.Session) string {

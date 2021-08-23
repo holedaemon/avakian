@@ -64,6 +64,7 @@ func reactQuoteFn(ctx context.Context, s *reaction.Session) error {
 		QuoterSnowflake:  s.Reaction.UserID,
 		Idx:              num,
 		MessageSnowflake: s.Reaction.MessageID,
+		ChannelSnowflake: s.Reaction.ChannelID,
 		GuildSnowflake:   s.Reaction.GuildID,
 	}
 
@@ -82,8 +83,8 @@ func reactQuoteFn(ctx context.Context, s *reaction.Session) error {
 	}
 
 	return s.Replyf(ctx, "%s quoted a message from %s %s",
-		fullUsername(quoter),
-		fullUsername(author),
+		username(quoter),
+		username(author),
 		jumpLinkFromSession(s),
 	)
 }
