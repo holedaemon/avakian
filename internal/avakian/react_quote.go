@@ -16,9 +16,25 @@ var (
 	)
 )
 
-// TODO: check if guild has quotes enabled
-
 func reactQuoteFn(ctx context.Context, s *reaction.Session) error {
+	if !s.Guild.DoQuotes {
+		return nil
+	}
+
+	b := getBot(s)
+	msg, err := b.FetchMessage(ctx, s.Reaction.ChannelID, s.Reaction.MessageID)
+	if err != nil {
+		return err
+	}
+
+	if msg.Author.ID == s.Reaction.UserID {
+		return s.Mention(ctx, "self-quoting is disallowed. Self-absorbed much?")
+	}
+
+	if msg.Author.ID == b.Client.State.Me().ID {
+		return nil
+	}
+
 	exists, err := models.Quotes(qm.Where("message_snowflake = ?", s.Reaction.MessageID)).Exists(ctx, s.Tx)
 	if err != nil {
 		return err
@@ -36,23 +52,38 @@ func reactQuoteFn(ctx context.Context, s *reaction.Session) error {
 		qm.Select("max("+models.QuoteColumns.Idx+") AS max_num"),
 	).Bind(ctx, s.Tx, &row)
 
-	b := getBot(s)
-	msg, err := b.FetchMessage(ctx, s.Reaction.ChannelID, s.Reaction.MessageID)
-	if err != nil {
-		return err
+	var num int
+	if row.MaxNum.Valid {
+		num = row.MaxNum.Int + 1
+	} else {
+		num = 1
 	}
 
 	q := &models.Quote{
 		AuthorSnowflake:  msg.Author.ID,
 		QuoterSnowflake:  s.Reaction.UserID,
-		Idx:              row.MaxNum.Int + 1,
+		Idx:              num,
 		MessageSnowflake: s.Reaction.MessageID,
 		GuildSnowflake:   s.Reaction.GuildID,
 	}
 
-	if err := q.Insert(ctx, s.Tx, boil.Whitelist()); err != nil {
+	if err := q.Insert(ctx, s.Tx, boil.Infer()); err != nil {
 		return err
 	}
 
-	return s.Replyf(ctx, "quote added xD")
+	quoter, err := b.FetchMember(ctx, s.Reaction.UserID, s.Reaction.GuildID)
+	if err != nil {
+		return err
+	}
+
+	author, err := b.FetchMember(ctx, msg.Author.ID, s.Reaction.GuildID)
+	if err != nil {
+		return err
+	}
+
+	return s.Replyf(ctx, "%s quoted a message from %s %s",
+		fullUsername(quoter),
+		fullUsername(author),
+		jumpLinkFromSession(s),
+	)
 }

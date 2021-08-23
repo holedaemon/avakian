@@ -44,6 +44,7 @@ var settingsMap = map[string]string{
 	"twittervideos": "embed_twitter_videos",
 	"te":            "embed_twitter_videos",
 	"tv":            "embed_twitter_videos",
+	"quotes":        "do_quotes",
 }
 
 func toggleSetting(ctx context.Context, s *message.Session, setting string, val bool) (bool, error) {
@@ -55,6 +56,8 @@ func toggleSetting(ctx context.Context, s *message.Session, setting string, val 
 	switch setting {
 	case "embed_twitter_videos":
 		guild.EmbedTwitterVideos = val
+	case "do_quotes":
+		guild.DoQuotes = val
 	}
 
 	if err := guild.Update(ctx, s.Tx, boil.Infer()); err != nil {

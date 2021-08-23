@@ -2,4 +2,6 @@ BEGIN;
 
 DROP TABLE quotes;
 
+ALTER TABLE guilds DROP COLUMN do_quotes;
+
 COMMIT;

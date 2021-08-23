@@ -13,6 +13,7 @@ type GuildWithPrefixes struct {
 	ID                 int64             `boil:"id"`
 	GuildSnowflake     string            `boil:"guild_snowflake"`
 	EmbedTwitterVideos bool              `boil:"embed_twitter_videos"`
+	DoQuotes           bool              `boil:"do_quotes"`
 	CreatedAt          time.Time         `boil:"created_at"`
 	UpdatedAt          time.Time         `boil:"updated_at"`
 	Prefixes           types.StringArray `boil:"prefixes"`

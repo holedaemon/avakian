@@ -67,3 +67,7 @@ func (s *Session) Replyf(ctx context.Context, msg string, args ...interface{}) e
 	msg = fmt.Sprintf(msg, args...)
 	return s.Reply(ctx, msg)
 }
+
+func (s *Session) Mention(ctx context.Context, msg string) error {
+	return s.Replyf(ctx, "<@%s>, %s", s.Reaction.UserID, msg)
+}

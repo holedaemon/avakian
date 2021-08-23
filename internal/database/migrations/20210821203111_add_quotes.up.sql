@@ -16,4 +16,6 @@ CREATE TABLE quotes (
     UNIQUE(guild_snowflake, idx)
 );
 
+ALTER TABLE guilds ADD COLUMN do_quotes boolean DEFAULT 'false' NOT NULL;
+
 COMMIT;

@@ -28,6 +28,7 @@ type Guild struct {
 	CreatedAt          time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt          time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 	EmbedTwitterVideos bool      `boil:"embed_twitter_videos" json:"embed_twitter_videos" toml:"embed_twitter_videos" yaml:"embed_twitter_videos"`
+	DoQuotes           bool      `boil:"do_quotes" json:"do_quotes" toml:"do_quotes" yaml:"do_quotes"`
 
 	R *guildR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L guildL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -39,12 +40,14 @@ var GuildColumns = struct {
 	CreatedAt          string
 	UpdatedAt          string
 	EmbedTwitterVideos string
+	DoQuotes           string
 }{
 	ID:                 "id",
 	GuildSnowflake:     "guild_snowflake",
 	CreatedAt:          "created_at",
 	UpdatedAt:          "updated_at",
 	EmbedTwitterVideos: "embed_twitter_videos",
+	DoQuotes:           "do_quotes",
 }
 
 var GuildTableColumns = struct {
@@ -53,12 +56,14 @@ var GuildTableColumns = struct {
 	CreatedAt          string
 	UpdatedAt          string
 	EmbedTwitterVideos string
+	DoQuotes           string
 }{
 	ID:                 "guilds.id",
 	GuildSnowflake:     "guilds.guild_snowflake",
 	CreatedAt:          "guilds.created_at",
 	UpdatedAt:          "guilds.updated_at",
 	EmbedTwitterVideos: "guilds.embed_twitter_videos",
+	DoQuotes:           "guilds.do_quotes",
 }
 
 // Generated where
@@ -78,12 +83,14 @@ var GuildWhere = struct {
 	CreatedAt          whereHelpertime_Time
 	UpdatedAt          whereHelpertime_Time
 	EmbedTwitterVideos whereHelperbool
+	DoQuotes           whereHelperbool
 }{
 	ID:                 whereHelperint64{field: "\"guilds\".\"id\""},
 	GuildSnowflake:     whereHelperstring{field: "\"guilds\".\"guild_snowflake\""},
 	CreatedAt:          whereHelpertime_Time{field: "\"guilds\".\"created_at\""},
 	UpdatedAt:          whereHelpertime_Time{field: "\"guilds\".\"updated_at\""},
 	EmbedTwitterVideos: whereHelperbool{field: "\"guilds\".\"embed_twitter_videos\""},
+	DoQuotes:           whereHelperbool{field: "\"guilds\".\"do_quotes\""},
 }
 
 // GuildRels is where relationship names are stored.
@@ -110,9 +117,9 @@ func (*guildR) NewStruct() *guildR {
 type guildL struct{}
 
 var (
-	guildAllColumns            = []string{"id", "guild_snowflake", "created_at", "updated_at", "embed_twitter_videos"}
+	guildAllColumns            = []string{"id", "guild_snowflake", "created_at", "updated_at", "embed_twitter_videos", "do_quotes"}
 	guildColumnsWithoutDefault = []string{"guild_snowflake"}
-	guildColumnsWithDefault    = []string{"id", "created_at", "updated_at", "embed_twitter_videos"}
+	guildColumnsWithDefault    = []string{"id", "created_at", "updated_at", "embed_twitter_videos", "do_quotes"}
 	guildPrimaryKeyColumns     = []string{"id"}
 )
 
