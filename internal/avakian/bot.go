@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	defaultPrefix = "!"
+	defaultPrefix    = "!"
+	maxMessageLength = 2000
 )
 
 var (

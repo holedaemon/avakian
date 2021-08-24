@@ -5,12 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
 	"strconv"
+	"strings"
 
 	"github.com/holedaemon/avakian/internal/bot/message"
 	"github.com/holedaemon/avakian/internal/database/models"
 	"github.com/holedaemon/avakian/internal/pkg/snowflake"
 	"github.com/skwair/harmony/discord"
+	"github.com/skwair/harmony/resource/channel"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
@@ -37,6 +40,11 @@ var (
 		message.WithCommandFn(cmdQuoteRemoveFn),
 		message.WithCommandPermissions(discord.PermissionManageMessages),
 	)
+
+	cmdQuoteList = message.NewCommand(
+		message.WithCommandFn(cmdQuoteListFn),
+		message.WithCommandPermissions(discord.PermissionSendMessages),
+	)
 )
 
 var quoteCommands = message.NewCommandMap(
@@ -45,6 +53,7 @@ var quoteCommands = message.NewCommandMap(
 	message.WithMapCommand("get", cmdQuoteGet),
 	message.WithMapCommand("remove", cmdQuoteRemove),
 	message.WithMapCommand("delete", cmdQuoteRemove),
+	message.WithMapCommand("list", cmdQuoteList),
 )
 
 func sendQuote(ctx context.Context, s *message.Session, quote *models.Quote) error {
@@ -122,4 +131,39 @@ func cmdQuoteRemoveFn(ctx context.Context, s *message.Session) error {
 	}
 
 	return s.Replyf(ctx, "Quote #%d has been removed from the database", idx)
+}
+
+func cmdQuoteListFn(ctx context.Context, s *message.Session) error {
+	quotes, err := models.Quotes(
+		qm.Where("guild_snowflake = ?", s.Msg.GuildID),
+	).All(ctx, s.Tx)
+	if err != nil {
+		return err
+	}
+
+	if len(quotes) == 0 {
+		return s.Reply(ctx, "This guild has no quotes")
+	}
+
+	sb := new(strings.Builder)
+	sb.WriteString("NOTE: A more comprehensive quote list function is coming Eventually\\™️\n\n")
+
+	for idx, quote := range quotes {
+		sb.WriteString(fmt.Sprintf("#%d • %s • %s", quote.Idx, snowflake.MarkdownTime(quote.MessageSnowflake), jumpLinkFromQuote(quote)))
+
+		if idx < len(quotes)+1 {
+			sb.WriteString("\n")
+		}
+	}
+
+	if sb.Len() < maxMessageLength {
+		return s.Replyf(ctx, sb.String())
+	}
+
+	b := getBot(s)
+	rc := io.NopCloser(strings.NewReader(sb.String()))
+	file := discord.FileFromReadCloser(rc, "quote_list.txt")
+	ch := b.Client.Channel(s.Msg.ChannelID)
+	_, err = ch.Send(ctx, channel.WithMessageFiles(file))
+	return err
 }

@@ -27,6 +27,15 @@ func reactQuoteFn(ctx context.Context, s *reaction.Session) error {
 		return err
 	}
 
+	reactor, err := b.FetchMember(ctx, s.Reaction.UserID, s.Reaction.GuildID)
+	if err != nil {
+		return err
+	}
+
+	if reactor.User.Bot {
+		return nil
+	}
+
 	if msg.Author.ID == s.Reaction.UserID {
 		return s.Mention(ctx, "self-quoting is disallowed. Self-absorbed much?")
 	}
@@ -35,7 +44,7 @@ func reactQuoteFn(ctx context.Context, s *reaction.Session) error {
 		return nil
 	}
 
-	exists, err := models.Quotes(qm.Where("message_snowflake = ?", s.Reaction.MessageID)).Exists(ctx, s.Tx)
+	exists, err := models.Quotes(qm.Where("message_snowflake = ?", msg.ID)).Exists(ctx, s.Tx)
 	if err != nil {
 		return err
 	}

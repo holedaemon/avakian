@@ -6,6 +6,7 @@ import (
 
 	"github.com/holedaemon/avakian/internal/bot"
 	"github.com/holedaemon/avakian/internal/bot/reaction"
+	"github.com/holedaemon/avakian/internal/database/models"
 	"github.com/skwair/harmony/discord"
 )
 
@@ -49,4 +50,8 @@ func jumpLinkFromSession(s bot.Session) string {
 	}
 
 	return ""
+}
+
+func jumpLinkFromQuote(q *models.Quote) string {
+	return fmt.Sprintf(jumpLinkURL, q.GuildSnowflake, q.ChannelSnowflake, q.MessageSnowflake)
 }
