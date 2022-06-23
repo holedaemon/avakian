@@ -9,8 +9,6 @@ COPY ./ ./
 
 RUN git describe >> tag
 
-RUN echo "$(cat tag)"
-
 RUN go build -ldflags="-X github.com/holedaemon/avakian/internal/version.version=$(cat tag)" -o avakian
 
 FROM gcr.io/distroless/base:nonroot
